@@ -8,7 +8,7 @@
 *::before,
 *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-padding-top: 78px; }
 
 body {
   font-family: "Manrope", system-ui, sans-serif;
@@ -323,7 +323,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ============================================================
    SOBRE RODRIGO
    ============================================================ */
-.about { background: var(--surface-2); position: relative; overflow: hidden; }
+.about { background: var(--surface-2); position: relative; overflow: visible; }
 .about__grid { display: grid; grid-template-columns: .85fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
 .about__photo { position: relative; }
 .about__photo img { width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center top; border-radius: 8px; box-shadow: var(--shadow); }
@@ -411,12 +411,28 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .about__grid { grid-template-columns: 1fr; }
   .about__photo { max-width: 22rem; }
   .brand__name span { display: none; }
+  /* Badge no se corta en columna simple */
+  .about__badge { right: 0; bottom: -1rem; }
+}
+@media (max-width: 640px) {
+  /* Propiedades: 1 columna en pantallas chicas */
+  .grid { grid-template-columns: 1fr; }
+  /* Marco decorativo fuera de pantalla → oculto */
+  .intro__img::before { display: none; }
+  /* Hero CTA: botones en columna */
+  .hero__cta { flex-direction: column; align-items: flex-start; gap: .7rem; }
+  .hero__cta .btn { width: 100%; justify-content: center; }
+  /* Filtros: scroll horizontal en lugar de wrap agresivo */
+  .filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: .4rem; }
+  .filter-group { flex-shrink: 0; }
 }
 @media (max-width: 560px) {
   .brand__name { display: none; }
   .topbar { padding-inline: 1rem; }
   .intro__stats { gap: 1.4rem; }
   .filters { gap: 1rem; }
+  /* Footer: centrado en móvil */
+  .footer__grid { flex-direction: column; align-items: flex-start; gap: 1.2rem; }
 }
 
 /* Floating WhatsApp */
