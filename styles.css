@@ -183,6 +183,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   from { transform: scale(1.08) translate3d(0, 0, 0); }
   to   { transform: scale(1.16) translate3d(-2%, -1.6%, 0); }
 }
+/* Pan más dinámico para la foto de intro (efecto drone / video) */
+@keyframes introPan {
+  0%   { transform: scale(1.07) translate3d( 2%,  5%, 0); }
+  35%  { transform: scale(1.12) translate3d(-1%,  1%, 0); }
+  65%  { transform: scale(1.14) translate3d( 1.5%, -2%, 0); }
+  100% { transform: scale(1.16) translate3d(-2.5%, -6%, 0); }
+}
 .hero::after {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: var(--hero-tint);
@@ -243,7 +250,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .stat b { font-family: "Fraunces", serif; font-size: 2.4rem; display: block; color: var(--detail); line-height: 1; }
 .stat span { font-size: .8rem; color: var(--muted); letter-spacing: .04em; }
 .intro__img { position: relative; }
-.intro__img img { width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center; border-radius: 6px; box-shadow: var(--shadow); }
+.intro__img__frame {
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+.intro__img img {
+  width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center; display: block;
+  animation: introPan 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
 /* Mismo filtro/tinte que el hero, para unificar color entre fotos */
 .intro__img::after {
   content: ""; position: absolute; inset: 0; border-radius: 6px; pointer-events: none;
