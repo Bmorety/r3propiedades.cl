@@ -349,11 +349,48 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ============================================================
    CONTACTO
    ============================================================ */
-.contact { text-align: center; }
-.contact h2 { font-size: clamp(2rem, 5vw, 3.4rem); margin: .6rem auto 1rem; max-width: 16ch; }
-.contact p { color: var(--muted); max-width: 46ch; margin: 0 auto 2.2rem; font-size: 1.05rem; }
+.contact {
+  position: relative;
+  text-align: center;
+  isolation: isolate;
+  color: #fff;
+}
+/* Foto de fondo */
+.contact__bg {
+  position: absolute; inset: 0; z-index: -2;
+  background: url('assets/reñaca.jpg') center / cover no-repeat;
+}
+/* Overlay oscuro para que el texto sea legible */
+.contact::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(
+    160deg,
+    rgba(10, 20, 30, .82) 0%,
+    rgba(10, 20, 30, .70) 60%,
+    color-mix(in srgb, var(--detail) 40%, rgba(10,20,30,.72)) 100%
+  );
+}
+.contact .eyebrow { color: var(--accent); }
+.contact h2 { font-size: clamp(2rem, 5vw, 3.4rem); margin: .6rem auto 1rem; max-width: 16ch; color: #fff; }
+.contact > .wrap > p { color: rgba(255,255,255,.78); max-width: 46ch; margin: 0 auto 2.2rem; font-size: 1.05rem; }
 .contact__actions { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
-.contact__phone { font-family: "Fraunces", serif; font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--detail); margin-top: 2.4rem; letter-spacing: .02em; }
+/* Botón "Enviar correo" adaptado a fondo oscuro */
+.btn--outline-white { border: 1.5px solid rgba(255,255,255,.55); color: #fff; }
+.btn--outline-white:hover { background: rgba(255,255,255,.12); border-color: #fff; }
+/* Teléfono como link clicable, prominente */
+.contact__phone {
+  display: inline-block;
+  margin-top: 2.4rem;
+  font-family: "Fraunces", serif;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  letter-spacing: .03em;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  padding-bottom: .1em;
+  transition: color .2s, border-color .2s;
+}
+.contact__phone:hover { color: #fff; border-color: rgba(255,255,255,.4); }
 
 /* ============================================================
    FOOTER
