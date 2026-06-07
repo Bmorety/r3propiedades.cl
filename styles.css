@@ -174,10 +174,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .hero__bg {
   position: absolute; inset: 0; z-index: -2;
   background-size: cover; background-position: center;
-  transform: scale(1.08);
-  animation: heroZoom 18s ease-out forwards;
+  transform: scale(1.1);
+  animation: heroDrift 34s ease-in-out infinite alternate;
+  will-change: transform;
 }
-@keyframes heroZoom { to { transform: scale(1); } }
+/* Sobrevuelo lento (Ken Burns) — ideal para la vista aérea */
+@keyframes heroDrift {
+  from { transform: scale(1.08) translate3d(0, 0, 0); }
+  to   { transform: scale(1.16) translate3d(-2%, -1.6%, 0); }
+}
 .hero::after {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: var(--hero-tint);
@@ -321,7 +326,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .about { background: var(--surface-2); position: relative; overflow: hidden; }
 .about__grid { display: grid; grid-template-columns: .85fr 1fr; gap: clamp(2rem, 6vw, 5rem); align-items: center; }
 .about__photo { position: relative; }
-.about__photo img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 8px; box-shadow: var(--shadow); }
+.about__photo img { width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center top; border-radius: 8px; box-shadow: var(--shadow); }
 .about__badge {
   position: absolute; bottom: -1.2rem; right: -1rem;
   background: var(--accent); color: var(--on-accent);
