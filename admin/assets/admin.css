@@ -656,6 +656,14 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
+.photo-tile--pending {
+  border-style: dashed;
+}
+
+.photo-tile--pending img {
+  opacity: .86;
+}
+
 .photo-tile img {
   width: 100%;
   aspect-ratio: 4 / 3;

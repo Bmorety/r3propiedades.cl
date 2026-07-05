@@ -4,6 +4,8 @@ const state = {
   currentId: null,
   mode: "dashboard",
   filter: "all",
+  pendingPhotoFiles: [],
+  pendingPhotoUrls: [],
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -76,6 +78,40 @@ function blankProperty() {
     sortOrder: nextSortOrder(),
     photos: [],
   };
+}
+
+function clearPendingPhotos() {
+  state.pendingPhotoUrls.forEach((url) => URL.revokeObjectURL(url));
+  state.pendingPhotoFiles = [];
+  state.pendingPhotoUrls = [];
+  $("#photoInput").value = "";
+}
+
+function queuePendingPhotos(files) {
+  const slots = Math.max(0, 12 - state.pendingPhotoFiles.length);
+  const accepted = files.slice(0, slots);
+  state.pendingPhotoFiles.push(...accepted);
+  state.pendingPhotoUrls.push(...accepted.map((file) => URL.createObjectURL(file)));
+
+  if (accepted.length < files.length) {
+    $("#photoStatus").textContent = "Máximo 12 fotos por propiedad.";
+  } else {
+    $("#photoStatus").textContent = `${state.pendingPhotoFiles.length} foto${state.pendingPhotoFiles.length === 1 ? "" : "s"} lista${state.pendingPhotoFiles.length === 1 ? "" : "s"} para subir al guardar.`;
+  }
+
+  renderPhotos([]);
+  renderPreview();
+}
+
+function removePendingPhoto(index) {
+  const [url] = state.pendingPhotoUrls.splice(index, 1);
+  if (url) URL.revokeObjectURL(url);
+  state.pendingPhotoFiles.splice(index, 1);
+  $("#photoStatus").textContent = state.pendingPhotoFiles.length
+    ? `${state.pendingPhotoFiles.length} foto${state.pendingPhotoFiles.length === 1 ? "" : "s"} pendiente${state.pendingPhotoFiles.length === 1 ? "" : "s"}.`
+    : "";
+  renderPhotos([]);
+  renderPreview();
 }
 
 function nextSortOrder() {
@@ -231,6 +267,13 @@ function toggleAvailableFrom() {
 }
 
 function formSnapshot() {
+  const savedPhotos = getCurrentProperty()?.photos || [];
+  const pendingPhotos = state.pendingPhotoUrls.map((url, index) => ({
+    id: `pending-${index}`,
+    url,
+    pending: true,
+  }));
+
   return {
     id: form.id.value || "",
     type: form.type.value || "temporada",
@@ -248,7 +291,7 @@ function formSnapshot() {
     availableFrom: form.availableFrom.value || "",
     airbnbUrl: form.airbnbUrl.value || "",
     sortOrder: Number(form.sortOrder.value || 100),
-    photos: getCurrentProperty()?.photos || [],
+    photos: savedPhotos.length ? savedPhotos : pendingPhotos,
   };
 }
 
@@ -309,15 +352,30 @@ function fillForm(property) {
 function renderPhotos(photos) {
   const grid = $("#photoGrid");
   const canUpload = Boolean(form.id.value);
-  $("#photoInput").disabled = !canUpload;
 
-  if (!canUpload) {
-    grid.innerHTML = `<p class="admin-status">Guarda la propiedad antes de subir fotos.</p>`;
+  if (!canUpload && state.pendingPhotoFiles.length) {
+    grid.innerHTML = state.pendingPhotoFiles.map((file, index) => `
+      <article class="photo-tile photo-tile--pending ${index === 0 ? "is-cover" : ""}">
+        <img src="${esc(state.pendingPhotoUrls[index])}" alt="" />
+        <footer>
+          <small>${esc(file.name)} · pendiente</small>
+          <div class="photo-actions">
+            <button type="button" data-remove-pending="${index}">Quitar</button>
+          </div>
+        </footer>
+      </article>
+    `).join("");
+
+    grid.querySelectorAll("[data-remove-pending]").forEach((button) => {
+      button.addEventListener("click", () => removePendingPhoto(Number(button.dataset.removePending)));
+    });
     return;
   }
 
   if (!photos.length) {
-    grid.innerHTML = `<p class="admin-status">Sin fotos todavía.</p>`;
+    grid.innerHTML = canUpload
+      ? `<p class="admin-status">Sin fotos todavía.</p>`
+      : `<p class="admin-status">Puedes seleccionar fotos ahora; se subirán cuando guardes la propiedad.</p>`;
     return;
   }
 
@@ -346,6 +404,7 @@ function renderPhotos(photos) {
 }
 
 function selectProperty(id) {
+  clearPendingPhotos();
   state.currentId = id;
   const property = getCurrentProperty() || blankProperty();
   showEditor();
@@ -357,6 +416,7 @@ function selectProperty(id) {
 }
 
 function startNewProperty() {
+  clearPendingPhotos();
   state.currentId = null;
   showEditor();
   fillForm(blankProperty());
@@ -406,7 +466,8 @@ function propertyFromForm() {
 
 async function saveProperty(event) {
   event.preventDefault();
-  $("#saveStatus").textContent = "Guardando...";
+  const pendingCount = state.pendingPhotoFiles.length;
+  $("#saveStatus").textContent = pendingCount ? "Guardando propiedad y fotos..." : "Guardando...";
   try {
     const data = await api("../api/admin-properties.php", {
       method: "POST",
@@ -415,10 +476,17 @@ async function saveProperty(event) {
     state.properties = data.properties || [];
     state.currentId = data.id;
     state.mode = "editor";
+
+    if (pendingCount) {
+      await uploadPhotos(state.pendingPhotoFiles, data.id, false);
+      clearPendingPhotos();
+      await loadProperties();
+    }
+
     renderList();
     renderDashboard();
     fillForm(getCurrentProperty());
-    $("#saveStatus").textContent = "Guardado.";
+    $("#saveStatus").textContent = pendingCount ? "Propiedad y fotos guardadas." : "Guardado.";
   } catch (error) {
     $("#saveStatus").textContent = error.message;
   }
@@ -441,9 +509,9 @@ async function deleteProperty() {
   }
 }
 
-async function uploadPhotos() {
-  const files = Array.from($("#photoInput").files || []);
-  const propertyId = Number(form.id.value || 0);
+async function uploadPhotos(filesArg = null, propertyIdArg = null, reload = true) {
+  const files = filesArg || Array.from($("#photoInput").files || []);
+  const propertyId = Number(propertyIdArg || form.id.value || 0);
   if (!files.length || !propertyId) return;
 
   $("#photoStatus").textContent = "Subiendo y optimizando...";
@@ -460,13 +528,27 @@ async function uploadPhotos() {
     });
     const data = await response.json();
     if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudieron subir las fotos.");
-    await loadProperties();
+    if (reload) await loadProperties();
     $("#photoStatus").textContent = "Fotos listas a 480 px.";
   } catch (error) {
     $("#photoStatus").textContent = error.message;
+    throw error;
   } finally {
     $("#photoInput").value = "";
   }
+}
+
+function handlePhotoInputChange() {
+  const files = Array.from($("#photoInput").files || []);
+  if (!files.length) return;
+
+  if (!form.id.value) {
+    queuePendingPhotos(files);
+    $("#photoInput").value = "";
+    return;
+  }
+
+  uploadPhotos(files).catch(() => {});
 }
 
 async function deletePhoto(id) {
@@ -583,7 +665,7 @@ form.addEventListener("change", () => {
   renderPreview();
 });
 $("#deleteBtn").addEventListener("click", deleteProperty);
-$("#photoInput").addEventListener("change", uploadPhotos);
+$("#photoInput").addEventListener("change", handlePhotoInputChange);
 
 bindPasswordToggle();
 init().catch((error) => {
