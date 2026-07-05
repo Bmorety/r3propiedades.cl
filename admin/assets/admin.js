@@ -224,21 +224,106 @@ function renderDashboard() {
   }
 
   list.innerHTML = sortedProperties().map((p) => `
-    <button class="dashboard-row" type="button" data-id="${p.id}">
-      <span class="row-title">
+    <div class="dashboard-row">
+      <button class="row-title" type="button" data-open="${p.id}">
         <b>${esc(p.title.es || "Sin título")}</b>
         <small>${esc(p.zone || "Sin zona")} · ${typeLabel(p.type)} · Orden ${Number(p.sortOrder || 0)}</small>
-      </span>
+      </button>
       <span class="row-badges">
-        <i class="status-pill ${p.visible ? "is-visible" : "is-hidden"}">${p.visible ? "Visible" : "Oculta"}</i>
-        <i class="status-pill ${availabilityClass(p)}">${availabilityLabel(p)}</i>
+        <select class="row-availability" data-availability-id="${p.id}" aria-label="Cambiar disponibilidad">
+          <option value="available" ${p.availabilityStatus === "available" ? "selected" : ""}>Disponible ahora</option>
+          <option value="available_from" ${p.availabilityStatus === "available_from" ? "selected" : ""}>Desde fecha</option>
+          <option value="unavailable" ${p.availabilityStatus === "unavailable" ? "selected" : ""}>No disponible</option>
+        </select>
+        <button type="button" class="status-pill ${p.visible ? "is-visible" : "is-hidden"}" data-visible-id="${p.id}">${p.visible ? "Visible" : "Oculta"}</button>
       </span>
-    </button>
+    </div>
   `).join("");
 
-  list.querySelectorAll("[data-id]").forEach((button) => {
-    button.addEventListener("click", () => selectProperty(Number(button.dataset.id)));
+  list.querySelectorAll("[data-open]").forEach((button) => {
+    button.addEventListener("click", () => selectProperty(Number(button.dataset.open)));
   });
+
+  list.querySelectorAll("[data-availability-id]").forEach((select) => {
+    select.addEventListener("change", () => updateAvailabilityFromDashboard(Number(select.dataset.availabilityId), select));
+  });
+
+  list.querySelectorAll("[data-visible-id]").forEach((button) => {
+    button.addEventListener("click", () => toggleVisibleFromDashboard(Number(button.dataset.visibleId)));
+  });
+}
+
+async function quickUpdateProperty(id, changes) {
+  const property = state.properties.find((p) => Number(p.id) === Number(id));
+  if (!property) return;
+
+  const payload = {
+    action: "save",
+    id: property.id,
+    slug: property.slug,
+    type: property.type,
+    zone: property.zone,
+    bedrooms: property.bedrooms,
+    bathrooms: property.bathrooms,
+    area: property.area,
+    price: property.price,
+    priceUnit: property.priceUnit,
+    title: property.title,
+    desc: property.desc,
+    featured: property.featured,
+    visible: property.visible,
+    availabilityStatus: property.availabilityStatus,
+    availableFrom: property.availableFrom,
+    airbnbUrl: property.airbnbUrl,
+    sortOrder: property.sortOrder,
+    ...changes,
+  };
+
+  const data = await api("../api/admin-properties.php", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  state.properties = data.properties || state.properties;
+  renderList();
+  renderDashboard();
+  if (state.mode === "editor" && Number(state.currentId) === Number(id)) {
+    fillForm(getCurrentProperty());
+  }
+}
+
+async function toggleVisibleFromDashboard(id) {
+  const property = state.properties.find((p) => Number(p.id) === id);
+  if (!property) return;
+  try {
+    await quickUpdateProperty(id, { visible: !property.visible });
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function updateAvailabilityFromDashboard(id, select) {
+  const property = state.properties.find((p) => Number(p.id) === id);
+  if (!property) return;
+  const status = select.value;
+  let availableFrom = property.availableFrom || "";
+
+  if (status === "available_from") {
+    const input = prompt("Fecha disponible (AAAA-MM-DD):", availableFrom || "");
+    if (input === null) {
+      select.value = property.availabilityStatus;
+      return;
+    }
+    availableFrom = input.trim();
+  } else {
+    availableFrom = "";
+  }
+
+  try {
+    await quickUpdateProperty(id, { availabilityStatus: status, availableFrom });
+  } catch (error) {
+    alert(error.message);
+    select.value = property.availabilityStatus;
+  }
 }
 
 function showDashboard() {
@@ -651,6 +736,7 @@ $("#logoutBtn").addEventListener("click", async () => {
 $("#newBtn").addEventListener("click", startNewProperty);
 $("#newDashboardBtn").addEventListener("click", startNewProperty);
 $("#backToDashboardBtn").addEventListener("click", showDashboard);
+$("#backToDashboardTopBtn").addEventListener("click", showDashboard);
 
 $("#listFilters").addEventListener("click", (event) => {
   const button = event.target.closest("[data-filter]");

@@ -90,6 +90,7 @@ $csrf = csrf_token();
           </section>
 
           <div id="editorView" hidden>
+            <button id="backToDashboardTopBtn" class="admin-btn admin-btn--ghost editor-back" type="button">&larr; Volver al dashboard</button>
             <form id="propertyForm" class="admin-form">
               <input type="hidden" name="id" />
               <div class="editor-head">
