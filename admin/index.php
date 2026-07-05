@@ -205,11 +205,11 @@ $csrf = csrf_token();
               </div>
             </form>
 
-            <section class="photo-panel">
+            <section id="photoPanel" class="photo-panel" aria-busy="false">
               <div class="photo-panel__head">
                 <div>
                   <h3>Fotos</h3>
-                  <p>Máximo 12. Se guardan a 480 px y el original se borra.</p>
+                  <p>JPG, PNG o WebP. Máximo 12 fotos, 50 MB por foto y 50 MB por tanda.</p>
                 </div>
                 <label class="admin-btn admin-btn--ghost upload-btn">
                   Subir fotos

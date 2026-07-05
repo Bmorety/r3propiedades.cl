@@ -6,7 +6,14 @@ const state = {
   filter: "all",
   pendingPhotoFiles: [],
   pendingPhotoUrls: [],
+  photoBusy: false,
 };
+
+const PHOTO_LIMIT = 12;
+const PHOTO_MAX_BYTES = 50 * 1024 * 1024;
+const PHOTO_BATCH_MAX_BYTES = 50 * 1024 * 1024;
+const PHOTO_ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const PHOTO_ACCEPTED_EXTENSIONS = /\.(jpe?g|png|webp)$/i;
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#propertyForm");
@@ -26,6 +33,14 @@ function esc(value) {
 function formatBytes(bytes) {
   if (!bytes) return "0 KB";
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function formatMegabytes(bytes) {
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
+}
+
+function photoCountText(count) {
+  return `${count} foto${count === 1 ? "" : "s"}`;
 }
 
 function formatPrice(value) {
@@ -87,17 +102,102 @@ function clearPendingPhotos() {
   $("#photoInput").value = "";
 }
 
+function isAcceptedPhoto(file) {
+  return PHOTO_ACCEPTED_TYPES.has(file.type) || PHOTO_ACCEPTED_EXTENSIONS.test(file.name || "");
+}
+
+function currentSavedPhotoCount(propertyId = Number(form.id.value || 0)) {
+  const property = state.properties.find((item) => Number(item.id) === Number(propertyId));
+  return property?.photos?.length || 0;
+}
+
+function pendingPhotoBytes() {
+  return state.pendingPhotoFiles.reduce((total, file) => total + file.size, 0);
+}
+
+function preparePhotoFiles(files, usedSlots = 0, usedBatchBytes = 0) {
+  const errors = [];
+  const accepted = [];
+  const slots = Math.max(0, PHOTO_LIMIT - usedSlots);
+  let batchBytes = usedBatchBytes;
+
+  files.forEach((file) => {
+    if (!isAcceptedPhoto(file)) {
+      errors.push(`${file.name}: formato no compatible.`);
+      return;
+    }
+    if (file.size > PHOTO_MAX_BYTES) {
+      errors.push(`${file.name}: supera ${formatMegabytes(PHOTO_MAX_BYTES)}.`);
+      return;
+    }
+    if (accepted.length >= slots) {
+      errors.push(`${file.name}: supera el máximo de ${PHOTO_LIMIT} fotos por propiedad.`);
+      return;
+    }
+    if (batchBytes + file.size > PHOTO_BATCH_MAX_BYTES) {
+      errors.push(`${file.name}: supera el máximo de ${formatMegabytes(PHOTO_BATCH_MAX_BYTES)} por tanda.`);
+      return;
+    }
+    accepted.push(file);
+    batchBytes += file.size;
+  });
+
+  if (!slots && files.some(isAcceptedPhoto)) {
+    errors.push(`Esta propiedad ya tiene el máximo de ${PHOTO_LIMIT} fotos.`);
+  }
+
+  const notice = errors.length > 1
+    ? `${errors[0]} ${errors.length - 1} archivo${errors.length === 2 ? "" : "s"} más no se subieron.`
+    : errors[0] || "";
+
+  return { accepted, notice };
+}
+
+function syncPhotoBusyControls() {
+  const photoInput = $("#photoInput");
+  const uploadBtn = $(".upload-btn");
+  const panel = $("#photoPanel");
+  const isBusy = state.photoBusy;
+
+  if (photoInput) photoInput.disabled = isBusy;
+  uploadBtn?.classList.toggle("is-disabled", isBusy);
+  uploadBtn?.setAttribute("aria-disabled", isBusy ? "true" : "false");
+  panel?.classList.toggle("is-busy", isBusy);
+  panel?.setAttribute("aria-busy", isBusy ? "true" : "false");
+
+  $("#photoGrid")?.querySelectorAll("button").forEach((button) => {
+    if (isBusy) {
+      button.dataset.photoWasDisabled = button.disabled ? "true" : "false";
+      button.disabled = true;
+      return;
+    }
+    if ("photoWasDisabled" in button.dataset) {
+      button.disabled = button.dataset.photoWasDisabled === "true";
+      delete button.dataset.photoWasDisabled;
+    }
+  });
+}
+
+function setPhotoBusy(isBusy, message = "") {
+  state.photoBusy = isBusy;
+  syncPhotoBusyControls();
+  if (message) $("#photoStatus").textContent = message;
+}
+
 function queuePendingPhotos(files) {
-  const slots = Math.max(0, 12 - state.pendingPhotoFiles.length);
-  const accepted = files.slice(0, slots);
+  if (state.photoBusy) return;
+
+  const { accepted, notice } = preparePhotoFiles(files, state.pendingPhotoFiles.length, pendingPhotoBytes());
+  if (!accepted.length) {
+    $("#photoStatus").textContent = notice || `Máximo ${PHOTO_LIMIT} fotos por propiedad.`;
+    return;
+  }
+
   state.pendingPhotoFiles.push(...accepted);
   state.pendingPhotoUrls.push(...accepted.map((file) => URL.createObjectURL(file)));
 
-  if (accepted.length < files.length) {
-    $("#photoStatus").textContent = "Máximo 12 fotos por propiedad.";
-  } else {
-    $("#photoStatus").textContent = `${state.pendingPhotoFiles.length} foto${state.pendingPhotoFiles.length === 1 ? "" : "s"} lista${state.pendingPhotoFiles.length === 1 ? "" : "s"} para subir al guardar.`;
-  }
+  const ready = `${photoCountText(state.pendingPhotoFiles.length)} lista${state.pendingPhotoFiles.length === 1 ? "" : "s"} para subir al guardar (${formatMegabytes(pendingPhotoBytes())} en esta tanda).`;
+  $("#photoStatus").textContent = notice ? `${ready} ${notice}` : ready;
 
   renderPhotos([]);
   renderPreview();
@@ -455,6 +555,7 @@ function renderPhotos(photos) {
     grid.querySelectorAll("[data-remove-pending]").forEach((button) => {
       button.addEventListener("click", () => removePendingPhoto(Number(button.dataset.removePending)));
     });
+    syncPhotoBusyControls();
     return;
   }
 
@@ -462,6 +563,7 @@ function renderPhotos(photos) {
     grid.innerHTML = canUpload
       ? `<p class="admin-status">Sin fotos todavía.</p>`
       : `<p class="admin-status">Puedes seleccionar fotos ahora; se subirán cuando guardes la propiedad.</p>`;
+    syncPhotoBusyControls();
     return;
   }
 
@@ -487,6 +589,7 @@ function renderPhotos(photos) {
   grid.querySelectorAll("[data-delete-photo]").forEach((button) => {
     button.addEventListener("click", () => deletePhoto(Number(button.dataset.deletePhoto)));
   });
+  syncPhotoBusyControls();
 }
 
 function selectProperty(id) {
@@ -596,15 +699,24 @@ async function deleteProperty() {
 }
 
 async function uploadPhotos(filesArg = null, propertyIdArg = null, reload = true) {
-  const files = filesArg || Array.from($("#photoInput").files || []);
-  const propertyId = Number(propertyIdArg || form.id.value || 0);
-  if (!files.length || !propertyId) return;
+  if (state.photoBusy) return null;
 
-  $("#photoStatus").textContent = "Subiendo y optimizando...";
+  const selectedFiles = filesArg || Array.from($("#photoInput").files || []);
+  const propertyId = Number(propertyIdArg || form.id.value || 0);
+  if (!selectedFiles.length || !propertyId) return null;
+
+  const { accepted, notice } = preparePhotoFiles(selectedFiles, currentSavedPhotoCount(propertyId));
+  if (!accepted.length) {
+    $("#photoStatus").textContent = notice || `Selecciona fotos JPG, PNG o WebP de hasta ${formatMegabytes(PHOTO_MAX_BYTES)}.`;
+    $("#photoInput").value = "";
+    return null;
+  }
+
+  setPhotoBusy(true, `Subiendo y optimizando ${photoCountText(accepted.length)}...`);
   const body = new FormData();
   body.append("csrf", state.csrf);
   body.append("property_id", propertyId);
-  files.forEach((file) => body.append("photos[]", file));
+  accepted.forEach((file) => body.append("photos[]", file));
 
   try {
     const response = await fetch("../api/admin-photos.php", {
@@ -615,16 +727,21 @@ async function uploadPhotos(filesArg = null, propertyIdArg = null, reload = true
     const data = await response.json();
     if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudieron subir las fotos.");
     if (reload) await loadProperties();
-    $("#photoStatus").textContent = "Fotos listas a 480 px.";
+    const ready = `${photoCountText(accepted.length)} lista${accepted.length === 1 ? "" : "s"} a 480 px.`;
+    $("#photoStatus").textContent = notice ? `${ready} ${notice}` : ready;
+    return data;
   } catch (error) {
     $("#photoStatus").textContent = error.message;
     throw error;
   } finally {
+    setPhotoBusy(false);
     $("#photoInput").value = "";
   }
 }
 
 function handlePhotoInputChange() {
+  if (state.photoBusy) return;
+
   const files = Array.from($("#photoInput").files || []);
   if (!files.length) return;
 
@@ -638,13 +755,14 @@ function handlePhotoInputChange() {
 }
 
 async function deletePhoto(id) {
+  if (state.photoBusy) return;
   if (!confirm("Eliminar esta foto?")) return;
   const body = new FormData();
   body.append("csrf", state.csrf);
   body.append("action", "delete");
   body.append("id", id);
 
-  $("#photoStatus").textContent = "Eliminando foto...";
+  setPhotoBusy(true, "Eliminando foto...");
   try {
     const response = await fetch("../api/admin-photos.php", {
       method: "POST",
@@ -657,16 +775,20 @@ async function deletePhoto(id) {
     $("#photoStatus").textContent = "Foto eliminada.";
   } catch (error) {
     $("#photoStatus").textContent = error.message;
+  } finally {
+    setPhotoBusy(false);
   }
 }
 
 async function makeCover(id) {
+  if (state.photoBusy) return;
+
   const body = new FormData();
   body.append("csrf", state.csrf);
   body.append("action", "make_cover");
   body.append("id", id);
 
-  $("#photoStatus").textContent = "Actualizando foto principal...";
+  setPhotoBusy(true, "Actualizando foto principal...");
   try {
     const response = await fetch("../api/admin-photos.php", {
       method: "POST",
@@ -679,6 +801,8 @@ async function makeCover(id) {
     $("#photoStatus").textContent = "Foto principal actualizada.";
   } catch (error) {
     $("#photoStatus").textContent = error.message;
+  } finally {
+    setPhotoBusy(false);
   }
 }
 

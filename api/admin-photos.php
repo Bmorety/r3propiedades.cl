@@ -3,7 +3,22 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/image.php';
 
+function upload_limit_mb(int $bytes): int
+{
+    return (int)round($bytes / (1024 * 1024));
+}
+
 require_admin();
+
+$maxBatchBytes = (int)config_value('uploads.max_batch_bytes', 50 * 1024 * 1024);
+$contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+if (($_SERVER['REQUEST_METHOD'] ?? 'POST') === 'POST' && $contentLength > $maxBatchBytes + (2 * 1024 * 1024) && empty($_POST)) {
+    json_response([
+        'ok' => false,
+        'error' => 'La tanda supera el máximo de ' . upload_limit_mb($maxBatchBytes) . ' MB. Sube menos fotos a la vez.',
+    ], 422);
+}
+
 require_csrf();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'POST';
@@ -93,21 +108,29 @@ if (!$files || !is_array($files['name'])) {
     json_response(['ok' => false, 'error' => 'Selecciona al menos una foto.'], 422);
 }
 
+$incomingBytes = array_sum(array_map('intval', $files['size'] ?? []));
+if ($incomingBytes > $maxBatchBytes) {
+    json_response(['ok' => false, 'error' => 'La tanda supera el máximo de ' . upload_limit_mb($maxBatchBytes) . ' MB. Sube menos fotos a la vez.'], 422);
+}
+
 $maxPhotos = (int)config_value('uploads.max_photos_per_property', 12);
 $incoming = count($files['name']);
 if (photo_count($propertyId) + $incoming > $maxPhotos) {
     json_response(['ok' => false, 'error' => "Máximo $maxPhotos fotos por propiedad."], 422);
 }
 
+$pdo = db();
 $currentOrder = photo_count($propertyId);
-$insert = db()->prepare(
+$insert = $pdo->prepare(
     "INSERT INTO property_photos
       (property_id, filename, original_name, mime, width, height, size_bytes, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 );
 
 $saved = [];
+$createdPaths = [];
 try {
+    $pdo->beginTransaction();
     for ($i = 0; $i < $incoming; $i++) {
         $file = [
             'name' => $files['name'][$i],
@@ -117,6 +140,7 @@ try {
             'size' => $files['size'][$i],
         ];
         $photo = process_property_photo($file, $propertyId);
+        $createdPaths[] = rtrim((string)config_value('uploads.dir'), '/') . '/' . $photo['filename'];
         $insert->execute([
             $propertyId,
             $photo['filename'],
@@ -128,7 +152,7 @@ try {
             ++$currentOrder,
         ]);
         $saved[] = [
-            'id' => (int)db()->lastInsertId(),
+            'id' => (int)$pdo->lastInsertId(),
             'url' => upload_public_url($photo['filename']),
             'filename' => $photo['filename'],
             'width' => $photo['width'],
@@ -137,7 +161,16 @@ try {
             'sortOrder' => $currentOrder,
         ];
     }
+    $pdo->commit();
 } catch (Throwable $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    foreach ($createdPaths as $path) {
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
     json_response(['ok' => false, 'error' => $e->getMessage()], 422);
 }
 

@@ -79,7 +79,8 @@ En ese modo usa `data/properties.js` como respaldo. Para probar `/admin` y la AP
 ## 📷 Politica de fotos
 
 - Máximo 12 fotos por propiedad.
-- Máximo 10 MB por archivo original al subir.
+- Máximo 50 MB por archivo original al subir.
+- Máximo 50 MB por tanda de subida.
 - Se guarda solo una versión liviana de 480 px en el lado más largo.
 - El original pesado no queda guardado.
 - Si PHP tiene soporte WebP, se guarda WebP; si no, JPEG optimizado.

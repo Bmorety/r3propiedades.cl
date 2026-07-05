@@ -5,11 +5,27 @@ require_once __DIR__ . '/bootstrap.php';
 
 function create_image_from_upload(string $path, int $type): GdImage
 {
-    return match ($type) {
+    $image = match ($type) {
         IMAGETYPE_JPEG => imagecreatefromjpeg($path),
         IMAGETYPE_PNG => imagecreatefrompng($path),
         IMAGETYPE_WEBP => imagecreatefromwebp($path),
         default => throw new RuntimeException('Formato de imagen no soportado.'),
+    };
+
+    if (!$image) {
+        throw new RuntimeException('No se pudo leer la imagen.');
+    }
+
+    return $image;
+}
+
+function upload_error_message(int $error): string
+{
+    return match ($error) {
+        UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'La foto supera el máximo permitido por el servidor.',
+        UPLOAD_ERR_PARTIAL => 'La foto se subió solo parcialmente. Intenta nuevamente.',
+        UPLOAD_ERR_NO_FILE => 'Selecciona al menos una foto.',
+        default => 'No se pudo subir una foto.',
     };
 }
 
@@ -60,11 +76,12 @@ function save_optimized(GdImage $image, string $basePath, int $targetBytes, int 
 
 function process_property_photo(array $file, int $propertyId): array
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        throw new RuntimeException('No se pudo subir una foto.');
+    $uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        throw new RuntimeException(upload_error_message($uploadError));
     }
 
-    $maxBytes = (int)config_value('uploads.max_original_bytes', 10 * 1024 * 1024);
+    $maxBytes = (int)config_value('uploads.max_original_bytes', 50 * 1024 * 1024);
     if ((int)$file['size'] > $maxBytes) {
         throw new RuntimeException('La foto supera el máximo permitido.');
     }

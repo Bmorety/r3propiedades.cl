@@ -18,7 +18,8 @@ return [
     'uploads' => [
         'dir' => __DIR__ . '/../uploads/properties',
         'url' => 'uploads/properties',
-        'max_original_bytes' => 10 * 1024 * 1024,
+        'max_original_bytes' => 50 * 1024 * 1024,
+        'max_batch_bytes' => 50 * 1024 * 1024,
         'max_photos_per_property' => 12,
         'max_side_px' => 480,
         'target_bytes' => 120 * 1024,
