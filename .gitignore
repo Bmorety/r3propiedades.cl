@@ -15,6 +15,9 @@ api/config.php
 # Guia interna para el admin (no es parte del sitio)
 GUIA-ADMIN.md
 
+# Notas locales para agentes IA (no es parte del sitio)
+AGENTS.md
+
 # Uploads generados en produccion
 uploads/properties/*
 !uploads/properties/.gitkeep
