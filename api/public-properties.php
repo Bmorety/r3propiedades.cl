@@ -5,8 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 try {
     $properties = db()->query(
-        "SELECT id, slug, type, zone, bedrooms, bathrooms, area, price, price_unit,
-                title_es, title_en, desc_es, desc_en, featured, visible, airbnb_url, sort_order
+        "SELECT *
          FROM properties
          WHERE visible = 1
          ORDER BY featured DESC, sort_order ASC, id DESC"
@@ -68,6 +67,8 @@ try {
             'title' => ['es' => $p['title_es'], 'en' => $p['title_en'] ?: $p['title_es']],
             'desc' => ['es' => $p['desc_es'], 'en' => $p['desc_en'] ?: $p['desc_es']],
             'featured' => (bool)$p['featured'],
+            'availabilityStatus' => $p['availability_status'] ?? '',
+            'availableFrom' => $p['available_from'] ?? '',
             'airbnbUrl' => $p['airbnb_url'] ?: '',
         ];
     }, $properties);

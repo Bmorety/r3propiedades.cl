@@ -66,12 +66,12 @@ function process_property_photo(array $file, int $propertyId): array
 
     $maxBytes = (int)config_value('uploads.max_original_bytes', 10 * 1024 * 1024);
     if ((int)$file['size'] > $maxBytes) {
-        throw new RuntimeException('La foto supera el maximo permitido.');
+        throw new RuntimeException('La foto supera el máximo permitido.');
     }
 
     $info = getimagesize($file['tmp_name']);
     if ($info === false) {
-        throw new RuntimeException('El archivo no parece ser una imagen valida.');
+        throw new RuntimeException('El archivo no parece ser una imagen válida.');
     }
 
     [$width, $height, $type] = $info;

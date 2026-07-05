@@ -22,10 +22,42 @@ function admin_property_payload(array $p, array $photos): array
         'desc' => ['es' => $p['desc_es'], 'en' => $p['desc_en']],
         'featured' => (bool)$p['featured'],
         'visible' => (bool)$p['visible'],
+        'availabilityStatus' => $p['availability_status'] ?? 'available',
+        'availableFrom' => $p['available_from'] ?? '',
         'airbnbUrl' => $p['airbnb_url'] ?? '',
         'sortOrder' => (int)$p['sort_order'],
         'photos' => $photos,
     ];
+}
+
+function properties_have_availability_columns(): bool
+{
+    static $hasColumns = null;
+    if ($hasColumns !== null) {
+        return $hasColumns;
+    }
+
+    $stmt = db()->query("SHOW COLUMNS FROM properties LIKE 'availability_status'");
+    $hasColumns = (bool)$stmt->fetch();
+    return $hasColumns;
+}
+
+function clean_availability_status(mixed $value): string
+{
+    return in_array($value, ['available', 'available_from', 'unavailable'], true)
+        ? $value
+        : 'available';
+}
+
+function clean_date_value(mixed $value): ?string
+{
+    $value = trim((string)$value);
+    if ($value === '') {
+        return null;
+    }
+
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+    return $date && $date->format('Y-m-d') === $value ? $value : null;
 }
 
 function fetch_admin_properties(): array
@@ -74,7 +106,7 @@ $action = $input['action'] ?? 'save';
 if ($action === 'delete') {
     $id = (int)($input['id'] ?? 0);
     if ($id <= 0) {
-        json_response(['ok' => false, 'error' => 'Propiedad no valida.'], 400);
+        json_response(['ok' => false, 'error' => 'Propiedad no válida.'], 400);
     }
 
     $stmt = db()->prepare('SELECT filename FROM property_photos WHERE property_id = ?');
@@ -95,20 +127,27 @@ if ($action === 'delete') {
 }
 
 if ($action !== 'save') {
-    json_response(['ok' => false, 'error' => 'Accion no valida.'], 400);
+    json_response(['ok' => false, 'error' => 'Acción no válida.'], 400);
 }
 
 $id = (int)($input['id'] ?? 0);
 $titleEs = clean_text($input['title']['es'] ?? '', 180);
 if ($titleEs === '') {
-    json_response(['ok' => false, 'error' => 'El titulo en espanol es obligatorio.'], 422);
+    json_response(['ok' => false, 'error' => 'El título en español es obligatorio.'], 422);
 }
 
 $type = in_array(($input['type'] ?? ''), ['temporada', 'anio'], true) ? $input['type'] : 'temporada';
 $priceUnit = in_array(($input['priceUnit'] ?? ''), ['noche', 'mes'], true) ? $input['priceUnit'] : 'noche';
+$availabilityStatus = clean_availability_status($input['availabilityStatus'] ?? 'available');
+$availableFrom = $availabilityStatus === 'available_from'
+    ? clean_date_value($input['availableFrom'] ?? '')
+    : null;
 $airbnb = clean_text($input['airbnbUrl'] ?? '', 500);
 if ($airbnb !== '' && !filter_var($airbnb, FILTER_VALIDATE_URL)) {
-    json_response(['ok' => false, 'error' => 'El link de Airbnb debe ser una URL valida.'], 422);
+    json_response(['ok' => false, 'error' => 'El link de Airbnb debe ser una URL válida.'], 422);
+}
+if ($availabilityStatus === 'available_from' && !$availableFrom) {
+    json_response(['ok' => false, 'error' => 'Selecciona una fecha de disponibilidad válida.'], 422);
 }
 
 $data = [
@@ -126,6 +165,8 @@ $data = [
     'desc_en' => clean_long_text($input['desc']['en'] ?? '', 3000),
     'featured' => bool01($input['featured'] ?? false),
     'visible' => bool01($input['visible'] ?? true),
+    'availability_status' => $availabilityStatus,
+    'available_from' => $availableFrom,
     'airbnb_url' => $airbnb,
     'sort_order' => max(0, min(9999, (int)($input['sortOrder'] ?? 100))),
 ];
@@ -137,33 +178,46 @@ if ($data['slug'] === '') {
 }
 
 try {
+    $hasAvailability = properties_have_availability_columns();
+    if (!$hasAvailability && $availabilityStatus !== 'available') {
+        json_response([
+            'ok' => false,
+            'error' => 'Primero ejecuta la migración de disponibilidad en la base de datos.',
+        ], 409);
+    }
+
     if ($id > 0) {
-        $stmt = db()->prepare(
-            "UPDATE properties SET
-              slug = ?, type = ?, zone = ?, bedrooms = ?, bathrooms = ?, area = ?, price = ?,
-              price_unit = ?, title_es = ?, title_en = ?, desc_es = ?, desc_en = ?,
-              featured = ?, visible = ?, airbnb_url = ?, sort_order = ?
-             WHERE id = ?"
-        );
-        $stmt->execute([
-            $data['slug'], $data['type'], $data['zone'], $data['bedrooms'], $data['bathrooms'],
-            $data['area'], $data['price'], $data['price_unit'], $data['title_es'],
-            $data['title_en'], $data['desc_es'], $data['desc_en'], $data['featured'],
-            $data['visible'], $data['airbnb_url'], $data['sort_order'], $id,
-        ]);
+        $fields = [
+            'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price', 'price_unit',
+            'title_es', 'title_en', 'desc_es', 'desc_en', 'featured', 'visible',
+        ];
+        if ($hasAvailability) {
+            $fields[] = 'availability_status';
+            $fields[] = 'available_from';
+        }
+        $fields[] = 'airbnb_url';
+        $fields[] = 'sort_order';
+
+        $sql = 'UPDATE properties SET ' . implode(' = ?, ', $fields) . ' = ? WHERE id = ?';
+        $values = array_map(fn(string $field): mixed => $data[$field], $fields);
+        $values[] = $id;
+        db()->prepare($sql)->execute($values);
     } else {
-        $stmt = db()->prepare(
-            "INSERT INTO properties
-              (slug, type, zone, bedrooms, bathrooms, area, price, price_unit,
-               title_es, title_en, desc_es, desc_en, featured, visible, airbnb_url, sort_order)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        );
-        $stmt->execute([
-            $data['slug'], $data['type'], $data['zone'], $data['bedrooms'], $data['bathrooms'],
-            $data['area'], $data['price'], $data['price_unit'], $data['title_es'],
-            $data['title_en'], $data['desc_es'], $data['desc_en'], $data['featured'],
-            $data['visible'], $data['airbnb_url'], $data['sort_order'],
-        ]);
+        $fields = [
+            'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price', 'price_unit',
+            'title_es', 'title_en', 'desc_es', 'desc_en', 'featured', 'visible',
+        ];
+        if ($hasAvailability) {
+            $fields[] = 'availability_status';
+            $fields[] = 'available_from';
+        }
+        $fields[] = 'airbnb_url';
+        $fields[] = 'sort_order';
+
+        $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+        $sql = 'INSERT INTO properties (' . implode(', ', $fields) . ') VALUES (' . $placeholders . ')';
+        $values = array_map(fn(string $field): mixed => $data[$field], $fields);
+        db()->prepare($sql)->execute($values);
         $id = (int)db()->lastInsertId();
     }
 

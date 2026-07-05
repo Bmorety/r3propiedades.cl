@@ -5,7 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 $propertyId = (int)($_GET['property_id'] ?? 0);
 if ($propertyId <= 0) {
-    json_response(['ok' => false, 'error' => 'Propiedad no valida.'], 400);
+    json_response(['ok' => false, 'error' => 'Propiedad no válida.'], 400);
 }
 
 try {

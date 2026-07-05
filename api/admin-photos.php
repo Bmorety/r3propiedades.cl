@@ -53,7 +53,7 @@ if ($method === 'POST' && ($_POST['action'] ?? '') === 'reorder') {
     }
     $propertyId = (int)($_POST['property_id'] ?? 0);
     if ($propertyId <= 0) {
-        json_response(['ok' => false, 'error' => 'Propiedad no valida.'], 400);
+        json_response(['ok' => false, 'error' => 'Propiedad no válida.'], 400);
     }
     reorder_property_photos($propertyId, $ids);
     json_response(['ok' => true]);
@@ -96,7 +96,7 @@ if (!$files || !is_array($files['name'])) {
 $maxPhotos = (int)config_value('uploads.max_photos_per_property', 12);
 $incoming = count($files['name']);
 if (photo_count($propertyId) + $incoming > $maxPhotos) {
-    json_response(['ok' => false, 'error' => "Maximo $maxPhotos fotos por propiedad."], 422);
+    json_response(['ok' => false, 'error' => "Máximo $maxPhotos fotos por propiedad."], 422);
 }
 
 $currentOrder = photo_count($propertyId);

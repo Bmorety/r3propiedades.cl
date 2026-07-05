@@ -279,6 +279,28 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .card__photos:hover { background: rgba(20, 25, 30, .76); }
 .card__body { padding: 1.3rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .85rem; flex: 1; }
+.card__availability {
+  align-self: flex-start;
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--detail) 12%, var(--surface));
+  color: var(--detail);
+  border: 1px solid color-mix(in srgb, var(--detail) 22%, var(--border));
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.card__availability--available_from {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent-2);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+}
+.card__availability--unavailable {
+  background: color-mix(in srgb, #8b2f2f 10%, var(--surface));
+  color: #8b2f2f;
+  border-color: color-mix(in srgb, #8b2f2f 24%, var(--border));
+}
 .card__title { font-family: "Fraunces", serif; font-size: 1.35rem; font-weight: 500; line-height: 1.15; }
 .card__desc { font-size: .9rem; color: var(--muted); }
 .card__specs { display: flex; gap: 1.1rem; flex-wrap: wrap; padding: .6rem 0; border-block: 1px solid var(--border); margin-top: auto; }
@@ -306,7 +328,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .empty { grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--muted); font-style: italic; }
 
-/* Galeria publica */
+/* Galería pública */
 .gallery {
   position: fixed; inset: 0; z-index: 220;
   display: grid; place-items: center;

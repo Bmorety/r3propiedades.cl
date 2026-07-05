@@ -58,6 +58,9 @@ const I18N = {
     "card.wa": "Consultar",
     "card.airbnb": "Airbnb",
     "card.photos": "Ver fotos",
+    "availability.available": "Disponible ahora",
+    "availability.available_from": "Disponible desde {date}",
+    "availability.unavailable": "No disponible",
     "empty": "No hay propiedades con esos filtros. Prueba con otra combinación.",
     "wa.generic": "Hola Rodrigo, vi R3 Propiedades y me gustaría más información.",
     "wa.prop": "Hola Rodrigo, me interesa la propiedad \"{title}\" en {zone}. ¿Sigue disponible?"
@@ -110,6 +113,9 @@ const I18N = {
     "card.wa": "Enquire",
     "card.airbnb": "Airbnb",
     "card.photos": "Photos",
+    "availability.available": "Available now",
+    "availability.available_from": "Available from {date}",
+    "availability.unavailable": "Not available",
     "empty": "No properties match those filters. Try another combination.",
     "wa.generic": "Hi Rodrigo, I saw R3 Propiedades and I'd like more information.",
     "wa.prop": "Hi Rodrigo, I'm interested in \"{title}\" in {zone}. Is it still available?"
@@ -152,8 +158,30 @@ function normalizeProperty(p) {
     image: p.image || photos[0]?.url || "assets/hero.jpg",
     photos,
     photoCount: Number(p.photoCount ?? photos.length),
+    availabilityStatus: p.availabilityStatus || "",
+    availableFrom: p.availableFrom || "",
     airbnbUrl: p.airbnbUrl || p.airbnb_url || ""
   };
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString(lang === "es" ? "es-CL" : "en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function availabilityText(property) {
+  if (!property.availabilityStatus) return "";
+  if (property.availabilityStatus === "unavailable") return t("availability.unavailable");
+  if (property.availabilityStatus === "available_from") {
+    return t("availability.available_from").replace("{date}", formatDate(property.availableFrom) || "");
+  }
+  return t("availability.available");
 }
 
 function isLocalDev() {
@@ -250,6 +278,7 @@ function propCard(p) {
   const airbnb = p.airbnbUrl
     ? `<a class="card__airbnb" href="${esc(p.airbnbUrl)}" target="_blank" rel="noopener">${t("card.airbnb")}</a>`
     : "";
+  const availability = availabilityText(p);
 
   return `
     <article class="card">
@@ -260,6 +289,7 @@ function propCard(p) {
         ${hasGallery ? `<button class="card__photos" type="button" data-gallery="${esc(p.id)}">${t("card.photos")}</button>` : ""}
       </div>
       <div class="card__body">
+        ${availability ? `<span class="card__availability card__availability--${esc(p.availabilityStatus)}">${esc(availability)}</span>` : ""}
         <h3 class="card__title">${esc(title)}</h3>
         <p class="card__desc">${esc(desc)}</p>
         <div class="card__specs">

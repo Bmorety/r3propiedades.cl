@@ -14,6 +14,8 @@ CREATE TABLE properties (
   desc_en TEXT NOT NULL,
   featured TINYINT(1) NOT NULL DEFAULT 0,
   visible TINYINT(1) NOT NULL DEFAULT 1,
+  availability_status ENUM('available', 'available_from', 'unavailable') NOT NULL DEFAULT 'available',
+  available_from DATE NULL,
   airbnb_url VARCHAR(500) NULL,
   sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 100,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

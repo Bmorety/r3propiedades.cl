@@ -38,4 +38,4 @@ if ($action === 'logout') {
     json_response(['ok' => true]);
 }
 
-json_response(['ok' => false, 'error' => 'Accion no valida.'], 400);
+json_response(['ok' => false, 'error' => 'Acción no válida.'], 400);
