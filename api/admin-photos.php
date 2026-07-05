@@ -23,6 +23,14 @@ function fetch_photo(int $id): ?array
     return $photo ?: null;
 }
 
+function reorder_property_photos(int $propertyId, array $orderedIds): void
+{
+    $stmt = db()->prepare('UPDATE property_photos SET sort_order = ? WHERE id = ? AND property_id = ?');
+    foreach (array_values($orderedIds) as $index => $id) {
+        $stmt->execute([$index + 1, (int)$id, $propertyId]);
+    }
+}
+
 if ($method === 'POST' && ($_POST['action'] ?? '') === 'delete') {
     $id = (int)($_POST['id'] ?? 0);
     $photo = fetch_photo($id);
@@ -43,10 +51,29 @@ if ($method === 'POST' && ($_POST['action'] ?? '') === 'reorder') {
     if (!is_array($ids)) {
         json_response(['ok' => false, 'error' => 'Orden no valido.'], 400);
     }
-    $stmt = db()->prepare('UPDATE property_photos SET sort_order = ? WHERE id = ?');
-    foreach (array_values($ids) as $index => $id) {
-        $stmt->execute([$index + 1, (int)$id]);
+    $propertyId = (int)($_POST['property_id'] ?? 0);
+    if ($propertyId <= 0) {
+        json_response(['ok' => false, 'error' => 'Propiedad no valida.'], 400);
     }
+    reorder_property_photos($propertyId, $ids);
+    json_response(['ok' => true]);
+}
+
+if ($method === 'POST' && ($_POST['action'] ?? '') === 'make_cover') {
+    $id = (int)($_POST['id'] ?? 0);
+    $photo = fetch_photo($id);
+    if (!$photo) {
+        json_response(['ok' => false, 'error' => 'Foto no encontrada.'], 404);
+    }
+
+    $stmt = db()->prepare(
+        'SELECT id FROM property_photos WHERE property_id = ? ORDER BY sort_order ASC, id ASC'
+    );
+    $stmt->execute([(int)$photo['property_id']]);
+    $ids = array_map('intval', array_column($stmt->fetchAll(), 'id'));
+    $ordered = array_values(array_unique(array_merge([$id], array_filter($ids, fn(int $item): bool => $item !== $id))));
+    reorder_property_photos((int)$photo['property_id'], $ordered);
+
     json_response(['ok' => true]);
 }
 

@@ -121,7 +121,7 @@ const I18N = {
 let lang = localStorage.getItem("r3-lang") || "es";
 let theme = localStorage.getItem("r3-theme") || "arena";
 let filters = { type: "all", bedrooms: "all" };
-let allProperties = Array.isArray(window.R3_PROPERTIES) ? window.R3_PROPERTIES : [];
+let allProperties = [];
 let galleryState = { property: null, index: 0 };
 
 const t = (key) => (I18N[lang] && I18N[lang][key]) || key;
@@ -153,8 +153,26 @@ function normalizeProperty(p) {
     desc: p.desc || { es: "", en: "" },
     image: p.image || photos[0]?.url || "assets/hero.jpg",
     photos,
+    photoCount: Number(p.photoCount ?? photos.length),
     airbnbUrl: p.airbnbUrl || p.airbnb_url || ""
   };
+}
+
+function isLocalDev() {
+  return ["localhost", "127.0.0.1", "::1", ""].includes(window.location.hostname);
+}
+
+function loadLocalDemoProperties() {
+  if (!isLocalDev()) return Promise.resolve([]);
+  if (Array.isArray(window.R3_PROPERTIES)) return Promise.resolve(window.R3_PROPERTIES);
+
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "data/properties.js";
+    script.onload = () => resolve(Array.isArray(window.R3_PROPERTIES) ? window.R3_PROPERTIES : []);
+    script.onerror = () => resolve([]);
+    document.head.appendChild(script);
+  });
 }
 
 async function loadProperties() {
@@ -166,9 +184,10 @@ async function loadProperties() {
       return;
     }
   } catch (error) {
-    // Si no hay backend local, se usa data/properties.js como respaldo.
+    // El respaldo de datos demo solo corre en desarrollo local.
   }
-  allProperties = (Array.isArray(window.R3_PROPERTIES) ? window.R3_PROPERTIES : []).map(normalizeProperty);
+  const demoProperties = await loadLocalDemoProperties();
+  allProperties = demoProperties.map(normalizeProperty);
 }
 
 /* ---------- WhatsApp link ---------- */
@@ -241,7 +260,7 @@ function propCard(p) {
   const waMsg = t("wa.prop")
     .replace("{title}", title)
     .replace("{zone}", p.zone);
-  const hasGallery = Array.isArray(p.photos) && p.photos.length > 1;
+  const hasGallery = Number(p.photoCount || p.photos?.length || 0) > 1;
   const airbnb = p.airbnbUrl
     ? `<a class="card__airbnb" href="${esc(p.airbnbUrl)}" target="_blank" rel="noopener">${t("card.airbnb")}</a>`
     : "";
@@ -316,12 +335,39 @@ function ensureGallery() {
   return modal;
 }
 
-function openGallery(id) {
+async function loadGalleryPhotos(property) {
+  if (property.galleryLoaded || property.photos.length >= property.photoCount) {
+    return property.photos;
+  }
+
+  const response = await fetch(`api/public-gallery.php?property_id=${encodeURIComponent(property.id)}`, {
+    cache: "no-store"
+  });
+  const data = await response.json();
+  if (!response.ok || !data.ok || !Array.isArray(data.photos)) {
+    throw new Error(data.error || "No se pudieron cargar las fotos.");
+  }
+  property.photos = data.photos;
+  property.galleryLoaded = true;
+  return property.photos;
+}
+
+async function openGallery(id) {
   const property = allProperties.find((p) => String(p.id) === String(id));
-  if (!property || !property.photos?.length) return;
-  galleryState = { property, index: 0 };
-  ensureGallery().hidden = false;
-  updateGallery();
+  if (!property) return;
+
+  const modal = ensureGallery();
+  modal.hidden = false;
+  modal.querySelector(".gallery__caption").textContent = "Cargando fotos...";
+
+  try {
+    await loadGalleryPhotos(property);
+    if (!property.photos?.length) return;
+    galleryState = { property, index: 0 };
+    updateGallery();
+  } catch (error) {
+    modal.querySelector(".gallery__caption").textContent = error.message;
+  }
 }
 
 function updateGallery() {

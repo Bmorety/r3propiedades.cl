@@ -11,6 +11,7 @@ Hecho en **HTML / CSS / JS + PHP/MySQL** (sin frameworks), pensado para publicar
 - 🏠 **Listado de propiedades** filtrable por dormitorios (1 / 2 / 3+) y tipo (temporada / año corrido).
 - 🔐 **Panel privado** en `/admin` para crear, editar, ocultar y eliminar propiedades.
 - 📷 **Subida de fotos optimizada**: maximo 12 por propiedad, lado largo 480 px, WebP si PHP/GD lo soporta.
+- 🖼️ **Carga liviana en el landing**: cada tarjeta carga solo la foto principal; la galeria completa se pide al abrirla.
 - 🔗 Campo opcional para link de **Airbnb** por propiedad.
 - 💬 Botones de **WhatsApp** con mensaje pre-cargado por propiedad.
 - 📱 Diseño responsive y accesible.
@@ -58,6 +59,7 @@ php -r "echo password_hash('TU_CLAVE_SEGURA', PASSWORD_DEFAULT), PHP_EOL;"
 | `area` | superficie en m² |
 | `price` / `priceUnit` | valor (sin puntos) y `"noche"` o `"mes"` |
 | `photos` | hasta 12 fotos optimizadas automaticamente |
+| portada | la primera foto del orden es la imagen principal |
 | `airbnbUrl` | link opcional a publicacion de Airbnb |
 | `title` / `desc` | texto en `{ es, en }` |
 
@@ -80,6 +82,8 @@ En ese modo usa `data/properties.js` como respaldo. Para probar `/admin` y la AP
 - Se guarda solo una version liviana de 480 px en el lado mas largo.
 - El original pesado no queda guardado.
 - Si PHP tiene soporte WebP, se guarda WebP; si no, JPEG optimizado.
+- En el panel se pueden subir varias fotos a la vez y marcar cualquiera como principal.
+- En la pagina publica se carga solo la principal; el resto se solicita al abrir la galeria.
 
 ---
 

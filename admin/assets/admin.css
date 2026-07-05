@@ -307,6 +307,11 @@
   background: var(--surface);
 }
 
+.photo-tile.is-cover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 .photo-tile img {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -314,9 +319,7 @@
 }
 
 .photo-tile footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: .4rem;
   padding: .5rem;
 }
@@ -326,10 +329,25 @@
   font-size: .72rem;
 }
 
+.photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+}
+
 .photo-tile button {
   color: #8b2f2f;
   font-weight: 800;
   font-size: .78rem;
+}
+
+.photo-tile button[data-cover-photo] {
+  color: var(--detail);
+}
+
+.photo-tile button:disabled {
+  color: var(--accent-2);
+  cursor: default;
 }
 
 [hidden] {

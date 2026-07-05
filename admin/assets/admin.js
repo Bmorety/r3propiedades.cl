@@ -109,15 +109,24 @@ function renderPhotos(photos) {
     return;
   }
 
-  grid.innerHTML = photos.map((photo) => `
-    <article class="photo-tile">
+  grid.innerHTML = photos.map((photo, index) => `
+    <article class="photo-tile ${index === 0 ? "is-cover" : ""}">
       <img src="../${photo.url}" alt="" loading="lazy" />
       <footer>
         <small>${photo.width}x${photo.height} · ${formatBytes(photo.sizeBytes)}</small>
-        <button type="button" data-delete-photo="${photo.id}">Borrar</button>
+        <div class="photo-actions">
+          <button type="button" data-cover-photo="${photo.id}" ${index === 0 ? "disabled" : ""}>
+            ${index === 0 ? "Principal" : "Usar principal"}
+          </button>
+          <button type="button" data-delete-photo="${photo.id}">Borrar</button>
+        </div>
       </footer>
     </article>
   `).join("");
+
+  grid.querySelectorAll("[data-cover-photo]").forEach((button) => {
+    button.addEventListener("click", () => makeCover(Number(button.dataset.coverPhoto)));
+  });
 
   grid.querySelectorAll("[data-delete-photo]").forEach((button) => {
     button.addEventListener("click", () => deletePhoto(Number(button.dataset.deletePhoto)));
@@ -246,6 +255,28 @@ async function deletePhoto(id) {
     if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudo borrar la foto.");
     await loadProperties();
     $("#photoStatus").textContent = "Foto eliminada.";
+  } catch (error) {
+    $("#photoStatus").textContent = error.message;
+  }
+}
+
+async function makeCover(id) {
+  const body = new FormData();
+  body.append("csrf", state.csrf);
+  body.append("action", "make_cover");
+  body.append("id", id);
+
+  $("#photoStatus").textContent = "Actualizando foto principal...";
+  try {
+    const response = await fetch("../api/admin-photos.php", {
+      method: "POST",
+      credentials: "same-origin",
+      body,
+    });
+    const data = await response.json();
+    if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudo cambiar la foto principal.");
+    await loadProperties();
+    $("#photoStatus").textContent = "Foto principal actualizada.";
   } catch (error) {
     $("#photoStatus").textContent = error.message;
   }
