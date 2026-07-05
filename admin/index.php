@@ -3,7 +3,7 @@ require_once __DIR__ . '/../api/bootstrap.php';
 $csrf = csrf_token();
 ?>
 <!DOCTYPE html>
-<html lang="es" data-theme="arena">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />

@@ -1,6 +1,5 @@
 /* ============================================================
    R3 PROPIEDADES — Lógica del sitio
-   · Selector de tema (3 paletas)
    · Selector de idioma ES / EN
    · Render y filtrado de propiedades
    · Enlaces de WhatsApp
@@ -119,7 +118,6 @@ const I18N = {
 
 /* ---------- Estado ---------- */
 let lang = localStorage.getItem("r3-lang") || "es";
-let theme = localStorage.getItem("r3-theme") || "arena";
 let filters = { type: "all", bedrooms: "all" };
 let allProperties = [];
 let galleryState = { property: null, index: 0 };
@@ -193,18 +191,6 @@ async function loadProperties() {
 /* ---------- WhatsApp link ---------- */
 function waLink(message) {
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
-}
-
-/* ============================================================
-   TEMA
-   ============================================================ */
-function applyTheme(set) {
-  theme = set;
-  document.documentElement.setAttribute("data-theme", set);
-  localStorage.setItem("r3-theme", set);
-  document.querySelectorAll(".theme-dot").forEach((d) =>
-    d.classList.toggle("is-active", d.dataset.set === set)
-  );
 }
 
 /* ============================================================
@@ -401,10 +387,6 @@ function bindGalleryButtons() {
    EVENTOS
    ============================================================ */
 function bindEvents() {
-  // Tema
-  document.querySelectorAll(".theme-dot").forEach((d) =>
-    d.addEventListener("click", () => applyTheme(d.dataset.set))
-  );
   // Idioma
   document.querySelectorAll(".lang-switch button").forEach((b) =>
     b.addEventListener("click", () => applyLang(b.dataset.lang))
@@ -425,7 +407,6 @@ function bindEvents() {
 
 /* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", async () => {
-  applyTheme(theme);
   bindEvents();
   await loadProperties();
   applyLang(lang); // también renderiza propiedades + actualiza WhatsApp

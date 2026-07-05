@@ -6,7 +6,7 @@ Hecho en **HTML / CSS / JS + PHP/MySQL** (sin frameworks), pensado para publicar
 
 ## ✨ Características
 
-- 🎨 **3 temas de color** conmutables en vivo (Arena & Mar profundo · Atardecer en Reñaca · Turquesa Pacífico).
+- 🎨 **Identidad visual azul profundo + dorado** inspirada en la costa.
 - 🌐 **Bilingüe** Español / Inglés con selector.
 - 🏠 **Listado de propiedades** filtrable por dormitorios (1 / 2 / 3+) y tipo (temporada / año corrido).
 - 🔐 **Panel privado** en `/admin` para crear, editar, ocultar y eliminar propiedades.
