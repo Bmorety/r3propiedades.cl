@@ -30,7 +30,7 @@ function formatBytes(bytes) {
 
 function formatPrice(value) {
   const number = Number(value || 0);
-  return number > 0 ? `$${number.toLocaleString("es-CL")}` : "Precio por definir";
+  return number > 0 ? `$${number.toLocaleString("es-CL")} CLP` : "Precio por definir";
 }
 
 function formatDate(value) {

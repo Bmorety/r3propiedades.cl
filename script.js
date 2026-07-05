@@ -138,7 +138,7 @@ const ICON = {
 };
 
 /* ---------- Formato de precio CLP ---------- */
-const fmtPrice = (n) => "$" + n.toLocaleString("es-CL");
+const fmtPrice = (n) => "$" + n.toLocaleString("es-CL") + " CLP";
 
 function esc(value) {
   return String(value ?? "")
