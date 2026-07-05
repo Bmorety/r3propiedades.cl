@@ -297,7 +297,8 @@ function formSnapshot() {
 
 function renderPreview(property = formSnapshot()) {
   const preview = $("#propertyPreview");
-  const cover = property.photos?.[0]?.url || "../assets/hero.jpg";
+  const coverPhoto = property.photos?.[0];
+  const cover = coverPhoto ? (coverPhoto.pending ? coverPhoto.url : `../${coverPhoto.url}`) : "../assets/hero.jpg";
   const title = property.title.es || "Título de la propiedad";
   const desc = property.desc.es || "La descripción aparecerá aquí tal como se verá en la tarjeta pública.";
   const unit = property.priceUnit === "mes" ? "mes" : "noche";
