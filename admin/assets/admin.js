@@ -184,6 +184,62 @@ function setPhotoBusy(isBusy, message = "") {
   if (message) $("#photoStatus").textContent = message;
 }
 
+function updatePhotoProgress({ title, detail = "", percent = null, stateClass = "" }) {
+  const progress = $("#photoProgress");
+  if (!progress) return;
+
+  progress.hidden = false;
+  progress.classList.remove("is-processing", "is-success", "is-error");
+  if (stateClass) progress.classList.add(stateClass);
+  $("#photoProgressTitle").textContent = title;
+  $("#photoProgressDetail").textContent = detail;
+
+  if (percent === null) {
+    $("#photoProgressPercent").textContent = "";
+    $("#photoProgressBar").style.width = "100%";
+    progress.classList.add("is-processing");
+    return;
+  }
+
+  const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+  $("#photoProgressPercent").textContent = `${safePercent}%`;
+  $("#photoProgressBar").style.width = `${safePercent}%`;
+}
+
+function sendPhotoForm(body, onUploadProgress) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("POST", "../api/admin-photos.php");
+    request.withCredentials = true;
+
+    request.upload.addEventListener("progress", (event) => {
+      if (!event.lengthComputable) return;
+      onUploadProgress(event.loaded, event.total);
+    });
+
+    request.addEventListener("load", () => {
+      let data = null;
+      try {
+        data = JSON.parse(request.responseText || "{}");
+      } catch (error) {
+        reject(new Error("El servidor respondió con un formato inesperado."));
+        return;
+      }
+
+      if (request.status < 200 || request.status >= 300 || data.ok === false) {
+        reject(new Error(data.error || "No se pudieron subir las fotos."));
+        return;
+      }
+      resolve(data);
+    });
+
+    request.addEventListener("error", () => reject(new Error("No se pudo conectar con el servidor.")));
+    request.addEventListener("timeout", () => reject(new Error("La subida tardó demasiado. Intenta con menos fotos.")));
+    request.timeout = 180000;
+    request.send(body);
+  });
+}
+
 function queuePendingPhotos(files) {
   if (state.photoBusy) return;
 
@@ -712,26 +768,63 @@ async function uploadPhotos(filesArg = null, propertyIdArg = null, reload = true
     return null;
   }
 
-  setPhotoBusy(true, `Subiendo y optimizando ${photoCountText(accepted.length)}...`);
+  const totalBytes = accepted.reduce((total, file) => total + file.size, 0);
+  const totalLabel = formatMegabytes(totalBytes);
+  setPhotoBusy(true, `Subiendo ${photoCountText(accepted.length)} (${totalLabel})...`);
+  updatePhotoProgress({
+    title: "Preparando subida",
+    detail: `${photoCountText(accepted.length)} seleccionada${accepted.length === 1 ? "" : "s"} · ${totalLabel} en total.`,
+    percent: 0,
+  });
+
   const body = new FormData();
   body.append("csrf", state.csrf);
   body.append("property_id", propertyId);
   accepted.forEach((file) => body.append("photos[]", file));
 
   try {
-    const response = await fetch("../api/admin-photos.php", {
-      method: "POST",
-      credentials: "same-origin",
-      body,
+    const data = await sendPhotoForm(body, (loaded, total) => {
+      const percent = total ? (loaded / total) * 100 : 0;
+      const loadedLabel = formatMegabytes(loaded);
+      const transferTotalLabel = formatMegabytes(total || totalBytes);
+      const isComplete = percent >= 100;
+      updatePhotoProgress({
+        title: isComplete ? "Optimizando fotos" : "Subiendo fotos",
+        detail: isComplete
+          ? "La subida terminó. El servidor está redimensionando y comprimiendo las imágenes."
+          : `${loadedLabel} de ${transferTotalLabel} enviados.`,
+        percent,
+        stateClass: isComplete ? "is-processing" : "",
+      });
     });
-    const data = await response.json();
-    if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudieron subir las fotos.");
-    if (reload) await loadProperties();
+
+    updatePhotoProgress({
+      title: reload ? "Actualizando galería" : "Fotos procesadas",
+      detail: reload ? "Guardando los cambios visibles en el panel." : "Las fotos quedaron optimizadas en el servidor.",
+      percent: 100,
+      stateClass: "is-processing",
+    });
+    if (reload) {
+      await loadProperties();
+    }
+
     const ready = `${photoCountText(accepted.length)} lista${accepted.length === 1 ? "" : "s"} a 480 px.`;
     $("#photoStatus").textContent = notice ? `${ready} ${notice}` : ready;
+    updatePhotoProgress({
+      title: "Fotos listas",
+      detail: notice ? `${ready} ${notice}` : ready,
+      percent: 100,
+      stateClass: "is-success",
+    });
     return data;
   } catch (error) {
     $("#photoStatus").textContent = error.message;
+    updatePhotoProgress({
+      title: "No se pudo completar la subida",
+      detail: error.message,
+      percent: 100,
+      stateClass: "is-error",
+    });
     throw error;
   } finally {
     setPhotoBusy(false);

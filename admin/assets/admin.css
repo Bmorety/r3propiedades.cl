@@ -677,6 +677,90 @@ button.status-pill {
   pointer-events: none;
 }
 
+.photo-progress {
+  margin: 1rem 0;
+  padding: .9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--detail) 34%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--detail) 8%, var(--surface));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+
+.photo-progress__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .65rem;
+}
+
+.photo-progress__top strong {
+  color: var(--text);
+  font-size: .98rem;
+}
+
+.photo-progress__top span {
+  color: var(--detail);
+  font-weight: 900;
+  font-size: .95rem;
+  min-width: 3.3rem;
+  text-align: right;
+}
+
+.photo-progress__bar {
+  height: .55rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 70%, white);
+}
+
+.photo-progress__bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--detail), var(--accent));
+  transition: width .22s ease;
+}
+
+.photo-progress p {
+  margin-top: .6rem;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: .88rem;
+}
+
+.photo-progress.is-processing .photo-progress__bar span {
+  background-size: 2rem 2rem;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,.22) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.22) 50%, rgba(255,255,255,.22) 75%, transparent 75%, transparent),
+    linear-gradient(90deg, var(--detail), var(--accent));
+  animation: photo-progress-stripes .8s linear infinite;
+}
+
+.photo-progress.is-success {
+  border-color: color-mix(in srgb, #2f7b55 48%, var(--border));
+  background: color-mix(in srgb, #2f7b55 10%, var(--surface));
+}
+
+.photo-progress.is-success .photo-progress__bar span {
+  background: #2f7b55;
+}
+
+.photo-progress.is-error {
+  border-color: color-mix(in srgb, #8b2f2f 52%, var(--border));
+  background: color-mix(in srgb, #8b2f2f 9%, var(--surface));
+}
+
+.photo-progress.is-error .photo-progress__bar span {
+  background: #8b2f2f;
+}
+
+@keyframes photo-progress-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 2rem 0; }
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));

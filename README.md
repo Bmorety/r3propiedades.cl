@@ -20,6 +20,7 @@ Hecho en **HTML / CSS / JS + PHP/MySQL** (sin frameworks), pensado para publicar
 
 ```
 r3propiedades.cl/
+├── AGENTS.md             ← notas tecnicas para futuras IAs/agentes
 ├── index.html            ← página principal
 ├── styles.css            ← estilos del tema azul profundo + dorado
 ├── script.js             ← lógica (idioma, filtros, WhatsApp)
@@ -48,6 +49,7 @@ php -r "echo password_hash('TU_CLAVE_SEGURA', PASSWORD_DEFAULT), PHP_EOL;"
 7. Sube el proyecto al hosting y entra a `/admin`.
 
 > `api/config.php` no se sube al repositorio porque contiene credenciales.
+> Para continuar trabajo con IA/agentes, leer tambien [`AGENTS.md`](AGENTS.md).
 
 ## ✏️ Campos editables
 

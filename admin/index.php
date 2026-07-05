@@ -216,6 +216,16 @@ $csrf = csrf_token();
                   <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
                 </label>
               </div>
+              <div id="photoProgress" class="photo-progress" role="status" aria-live="polite" hidden>
+                <div class="photo-progress__top">
+                  <strong id="photoProgressTitle">Preparando fotos</strong>
+                  <span id="photoProgressPercent">0%</span>
+                </div>
+                <div class="photo-progress__bar" aria-hidden="true">
+                  <span id="photoProgressBar"></span>
+                </div>
+                <p id="photoProgressDetail"></p>
+              </div>
               <div id="photoGrid" class="photo-grid"></div>
               <p id="photoStatus" class="admin-status" role="status"></p>
             </section>
