@@ -57,6 +57,8 @@ const I18N = {
     "tag.temporada": "Temporada",
     "tag.anio": "Año corrido",
     "card.wa": "Consultar",
+    "card.airbnb": "Airbnb",
+    "card.photos": "Ver fotos",
     "empty": "No hay propiedades con esos filtros. Prueba con otra combinación.",
     "wa.generic": "Hola Rodrigo, vi R3 Propiedades y me gustaría más información.",
     "wa.prop": "Hola Rodrigo, me interesa la propiedad \"{title}\" en {zone}. ¿Sigue disponible?"
@@ -107,6 +109,8 @@ const I18N = {
     "tag.temporada": "Seasonal",
     "tag.anio": "Year-round",
     "card.wa": "Enquire",
+    "card.airbnb": "Airbnb",
+    "card.photos": "Photos",
     "empty": "No properties match those filters. Try another combination.",
     "wa.generic": "Hi Rodrigo, I saw R3 Propiedades and I'd like more information.",
     "wa.prop": "Hi Rodrigo, I'm interested in \"{title}\" in {zone}. Is it still available?"
@@ -117,6 +121,8 @@ const I18N = {
 let lang = localStorage.getItem("r3-lang") || "es";
 let theme = localStorage.getItem("r3-theme") || "arena";
 let filters = { type: "all", bedrooms: "all" };
+let allProperties = Array.isArray(window.R3_PROPERTIES) ? window.R3_PROPERTIES : [];
+let galleryState = { property: null, index: 0 };
 
 const t = (key) => (I18N[lang] && I18N[lang][key]) || key;
 
@@ -129,6 +135,41 @@ const ICON = {
 
 /* ---------- Formato de precio CLP ---------- */
 const fmtPrice = (n) => "$" + n.toLocaleString("es-CL");
+
+function esc(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function normalizeProperty(p) {
+  const photos = Array.isArray(p.photos) ? p.photos : [];
+  return {
+    ...p,
+    title: p.title || { es: "", en: "" },
+    desc: p.desc || { es: "", en: "" },
+    image: p.image || photos[0]?.url || "assets/hero.jpg",
+    photos,
+    airbnbUrl: p.airbnbUrl || p.airbnb_url || ""
+  };
+}
+
+async function loadProperties() {
+  try {
+    const response = await fetch("api/public-properties.php", { cache: "no-store" });
+    const data = await response.json();
+    if (response.ok && data.ok && Array.isArray(data.properties)) {
+      allProperties = data.properties.map(normalizeProperty);
+      return;
+    }
+  } catch (error) {
+    // Si no hay backend local, se usa data/properties.js como respaldo.
+  }
+  allProperties = (Array.isArray(window.R3_PROPERTIES) ? window.R3_PROPERTIES : []).map(normalizeProperty);
+}
 
 /* ---------- WhatsApp link ---------- */
 function waLink(message) {
@@ -195,20 +236,27 @@ function matchesFilters(p) {
 function propCard(p) {
   const isSeason = p.type === "temporada";
   const unit = p.priceUnit === "noche" ? t("u.night") : t("u.month");
+  const title = p.title[lang] || p.title.es || "";
+  const desc = p.desc[lang] || p.desc.es || "";
   const waMsg = t("wa.prop")
-    .replace("{title}", p.title[lang])
+    .replace("{title}", title)
     .replace("{zone}", p.zone);
+  const hasGallery = Array.isArray(p.photos) && p.photos.length > 1;
+  const airbnb = p.airbnbUrl
+    ? `<a class="card__airbnb" href="${esc(p.airbnbUrl)}" target="_blank" rel="noopener">${t("card.airbnb")}</a>`
+    : "";
 
   return `
     <article class="card">
       <div class="card__media">
-        <img src="${p.image}" alt="${p.title[lang]}" loading="lazy" />
+        <img src="${esc(p.image)}" alt="${esc(title)}" loading="lazy" />
         <span class="card__tag ${isSeason ? "card__tag--temporada" : ""}">${t("tag." + p.type)}</span>
-        <span class="card__zone">📍 ${p.zone}</span>
+        <span class="card__zone">📍 ${esc(p.zone)}</span>
+        ${hasGallery ? `<button class="card__photos" type="button" data-gallery="${esc(p.id)}">${t("card.photos")}</button>` : ""}
       </div>
       <div class="card__body">
-        <h3 class="card__title">${p.title[lang]}</h3>
-        <p class="card__desc">${p.desc[lang]}</p>
+        <h3 class="card__title">${esc(title)}</h3>
+        <p class="card__desc">${esc(desc)}</p>
         <div class="card__specs">
           <span class="spec">${ICON.bed} ${p.bedrooms} ${t("u.beds")}</span>
           <span class="spec">${ICON.bath} ${p.bathrooms} ${t("u.baths")}</span>
@@ -216,10 +264,13 @@ function propCard(p) {
         </div>
         <div class="card__foot">
           <div class="price"><b>${fmtPrice(p.price)}</b><span>/ ${unit}</span></div>
-          <a class="card__wa" href="${waLink(waMsg)}" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.3-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.94 1.34-.5.04-.97.22-3.27-.68-2.75-1.08-4.5-3.88-4.64-4.06-.14-.18-1.12-1.49-1.12-2.84s.71-2.01.96-2.29c.25-.27.55-.34.73-.34.18 0 .37 0 .53.01.17.01.4-.06.62.48.24.56.81 1.94.88 2.08.07.14.12.3.02.48-.1.18-.15.29-.29.45-.14.16-.3.36-.43.48-.14.14-.29.29-.12.57.17.27.74 1.22 1.59 1.98 1.1.98 2.02 1.28 2.3 1.42.28.14.45.12.61-.07.16-.18.7-.81.89-1.09.18-.27.37-.23.62-.14.25.09 1.6.76 1.87.9.27.14.46.2.53.32.07.11.07.66-.17 1.34z"/></svg>
-            ${t("card.wa")}
-          </a>
+          <div class="card__actions">
+            ${airbnb}
+            <a class="card__wa" href="${waLink(waMsg)}" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.3-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.94 1.34-.5.04-.97.22-3.27-.68-2.75-1.08-4.5-3.88-4.64-4.06-.14-.18-1.12-1.49-1.12-2.84s.71-2.01.96-2.29c.25-.27.55-.34.73-.34.18 0 .37 0 .53.01.17.01.4-.06.62.48.24.56.81 1.94.88 2.08.07.14.12.3.02.48-.1.18-.15.29-.29.45-.14.16-.3.36-.43.48-.14.14-.29.29-.12.57.17.27.74 1.22 1.59 1.98 1.1.98 2.02 1.28 2.3 1.42.28.14.45.12.61-.07.16-.18.7-.81.89-1.09.18-.27.37-.23.62-.14.25.09 1.6.76 1.87.9.27.14.46.2.53.32.07.11.07.66-.17 1.34z"/></svg>
+              ${t("card.wa")}
+            </a>
+          </div>
         </div>
       </div>
     </article>`;
@@ -228,10 +279,76 @@ function propCard(p) {
 function renderProperties() {
   const grid = document.getElementById("propGrid");
   if (!grid) return;
-  const data = (window.R3_PROPERTIES || []).filter(matchesFilters);
+  const data = allProperties.filter(matchesFilters);
   grid.innerHTML = data.length
     ? data.map(propCard).join("")
     : `<p class="empty">${t("empty")}</p>`;
+  bindGalleryButtons();
+}
+
+function ensureGallery() {
+  let modal = document.getElementById("galleryModal");
+  if (modal) return modal;
+
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="gallery" id="galleryModal" hidden>
+      <button class="gallery__close" type="button" aria-label="Cerrar">×</button>
+      <button class="gallery__nav gallery__nav--prev" type="button" aria-label="Anterior">‹</button>
+      <img class="gallery__img" alt="" />
+      <button class="gallery__nav gallery__nav--next" type="button" aria-label="Siguiente">›</button>
+      <p class="gallery__caption"></p>
+    </div>
+  `);
+
+  modal = document.getElementById("galleryModal");
+  modal.querySelector(".gallery__close").addEventListener("click", closeGallery);
+  modal.querySelector(".gallery__nav--prev").addEventListener("click", () => moveGallery(-1));
+  modal.querySelector(".gallery__nav--next").addEventListener("click", () => moveGallery(1));
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeGallery();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (modal.hidden) return;
+    if (event.key === "Escape") closeGallery();
+    if (event.key === "ArrowLeft") moveGallery(-1);
+    if (event.key === "ArrowRight") moveGallery(1);
+  });
+  return modal;
+}
+
+function openGallery(id) {
+  const property = allProperties.find((p) => String(p.id) === String(id));
+  if (!property || !property.photos?.length) return;
+  galleryState = { property, index: 0 };
+  ensureGallery().hidden = false;
+  updateGallery();
+}
+
+function updateGallery() {
+  const modal = ensureGallery();
+  const { property, index } = galleryState;
+  const photo = property.photos[index];
+  const title = property.title[lang] || property.title.es || "";
+  modal.querySelector(".gallery__img").src = photo.url;
+  modal.querySelector(".gallery__img").alt = title;
+  modal.querySelector(".gallery__caption").textContent = `${title} · ${index + 1}/${property.photos.length}`;
+}
+
+function moveGallery(delta) {
+  const { property, index } = galleryState;
+  if (!property) return;
+  galleryState.index = (index + delta + property.photos.length) % property.photos.length;
+  updateGallery();
+}
+
+function closeGallery() {
+  ensureGallery().hidden = true;
+}
+
+function bindGalleryButtons() {
+  document.querySelectorAll("[data-gallery]").forEach((button) => {
+    button.addEventListener("click", () => openGallery(button.dataset.gallery));
+  });
 }
 
 /* ============================================================
@@ -261,8 +378,9 @@ function bindEvents() {
 }
 
 /* ---------- Init ---------- */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   applyTheme(theme);
   bindEvents();
+  await loadProperties();
   applyLang(lang); // también renderiza propiedades + actualiza WhatsApp
 });

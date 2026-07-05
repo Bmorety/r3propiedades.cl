@@ -8,3 +8,10 @@
 
 # Logs / temporales
 *.log
+
+# Config local / credenciales
+api/config.php
+
+# Uploads generados en produccion
+uploads/properties/*
+!uploads/properties/.gitkeep

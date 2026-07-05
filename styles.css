@@ -317,6 +317,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .card__tag--temporada { color: var(--on-accent); background: var(--accent); border-color: transparent; }
 .card__zone { position: absolute; bottom: .8rem; left: .9rem; color: #fff; font-size: .82rem; font-weight: 600; letter-spacing: .03em; text-shadow: 0 1px 8px rgba(0,0,0,.5); display: flex; align-items: center; gap: .35rem; }
+.card__photos {
+  position: absolute; right: .9rem; bottom: .75rem;
+  padding: .35rem .72rem; border-radius: 999px;
+  color: #fff; background: rgba(20, 25, 30, .58);
+  border: 1px solid rgba(255,255,255,.34);
+  backdrop-filter: blur(8px);
+  font-size: .72rem; font-weight: 800;
+}
+.card__photos:hover { background: rgba(20, 25, 30, .76); }
 .card__body { padding: 1.3rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: .85rem; flex: 1; }
 .card__title { font-family: "Fraunces", serif; font-size: 1.35rem; font-weight: 500; line-height: 1.15; }
 .card__desc { font-size: .9rem; color: var(--muted); }
@@ -326,6 +335,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .card__foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .price b { font-family: "Fraunces", serif; font-size: 1.4rem; color: var(--detail); }
 .price span { display: block; font-size: .72rem; color: var(--muted); letter-spacing: .04em; }
+.card__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
 .card__wa {
   display: inline-flex; align-items: center; gap: .45rem; font-size: .82rem; font-weight: 700;
   padding: .55rem .9rem; border-radius: 999px; background: #25D366; color: #07301a;
@@ -333,8 +343,57 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .card__wa:hover { transform: translateY(-2px); }
 .card__wa svg { width: 1rem; height: 1rem; }
+.card__airbnb {
+  display: inline-flex; align-items: center;
+  padding: .55rem .82rem; border-radius: 999px;
+  background: #ff385c; color: #fff;
+  font-size: .82rem; font-weight: 800;
+  transition: transform .2s;
+}
+.card__airbnb:hover { transform: translateY(-2px); }
 
 .empty { grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--muted); font-style: italic; }
+
+/* Galeria publica */
+.gallery {
+  position: fixed; inset: 0; z-index: 220;
+  display: grid; place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background: rgba(8, 14, 20, .86);
+}
+.gallery[hidden] { display: none; }
+.gallery__img {
+  max-width: min(92vw, 760px);
+  max-height: 78svh;
+  border-radius: 8px;
+  box-shadow: 0 30px 90px -28px rgba(0,0,0,.75);
+}
+.gallery__close,
+.gallery__nav {
+  position: absolute;
+  display: grid; place-items: center;
+  color: #fff; background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25);
+  backdrop-filter: blur(8px);
+}
+.gallery__close {
+  top: 1rem; right: 1rem;
+  width: 2.8rem; height: 2.8rem; border-radius: 50%;
+  font-size: 2rem; line-height: 1;
+}
+.gallery__nav {
+  top: 50%; transform: translateY(-50%);
+  width: 3rem; height: 3rem; border-radius: 50%;
+  font-size: 2.5rem;
+}
+.gallery__nav--prev { left: 1rem; }
+.gallery__nav--next { right: 1rem; }
+.gallery__caption {
+  position: absolute; left: 50%; bottom: 1rem; transform: translateX(-50%);
+  width: min(90vw, 680px);
+  text-align: center; color: rgba(255,255,255,.86);
+  font-size: .9rem; font-weight: 700;
+}
 
 /* ============================================================
    SOBRE RODRIGO
