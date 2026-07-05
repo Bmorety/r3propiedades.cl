@@ -12,6 +12,9 @@
 # Config local / credenciales
 api/config.php
 
+# Guia interna para el admin (no es parte del sitio)
+GUIA-ADMIN.md
+
 # Uploads generados en produccion
 uploads/properties/*
 !uploads/properties/.gitkeep
