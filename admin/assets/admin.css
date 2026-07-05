@@ -178,6 +178,36 @@
   transition: border-color .2s, box-shadow .2s;
 }
 
+.password-field {
+  position: relative;
+  display: block;
+}
+
+.password-field input {
+  padding-right: 4.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: .55rem;
+  transform: translateY(-50%);
+  min-width: 3.1rem;
+  padding: .22rem .5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--detail);
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.password-toggle:hover {
+  border-color: var(--accent);
+}
+
 .admin-form textarea {
   resize: vertical;
 }

@@ -28,7 +28,10 @@ $csrf = csrf_token();
           </label>
           <label>
             Clave
-            <input name="password" type="password" autocomplete="current-password" required />
+            <span class="password-field">
+              <input name="password" type="password" autocomplete="current-password" required />
+              <button id="togglePasswordBtn" class="password-toggle" type="button" aria-label="Mostrar clave" aria-pressed="false">Ver</button>
+            </span>
           </label>
           <button class="admin-btn admin-btn--primary" type="submit">Entrar</button>
           <p id="loginError" class="admin-error" role="alert"></p>

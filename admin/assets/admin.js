@@ -6,6 +6,9 @@ const state = {
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#propertyForm");
+const loginForm = $("#loginForm");
+const loginPasswordInput = loginForm?.querySelector('input[name="password"]');
+const togglePasswordBtn = $("#togglePasswordBtn");
 
 function formatBytes(bytes) {
   if (!bytes) return "0 KB";
@@ -292,7 +295,19 @@ async function init() {
   }
 }
 
-$("#loginForm").addEventListener("submit", async (event) => {
+function bindPasswordToggle() {
+  if (!loginPasswordInput || !togglePasswordBtn) return;
+
+  togglePasswordBtn.addEventListener("click", () => {
+    const showPassword = loginPasswordInput.type === "password";
+    loginPasswordInput.type = showPassword ? "text" : "password";
+    togglePasswordBtn.textContent = showPassword ? "Ocultar" : "Ver";
+    togglePasswordBtn.setAttribute("aria-label", showPassword ? "Ocultar clave" : "Mostrar clave");
+    togglePasswordBtn.setAttribute("aria-pressed", showPassword ? "true" : "false");
+  });
+}
+
+loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   $("#loginError").textContent = "";
   try {
@@ -331,6 +346,7 @@ form.addEventListener("submit", saveProperty);
 $("#deleteBtn").addEventListener("click", deleteProperty);
 $("#photoInput").addEventListener("change", uploadPhotos);
 
+bindPasswordToggle();
 init().catch((error) => {
   $("#loginView").hidden = false;
   $("#loginError").textContent = error.message;
