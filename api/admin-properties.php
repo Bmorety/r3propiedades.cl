@@ -22,6 +22,7 @@ function admin_property_payload(array $p, array $photos): array
         'desc' => ['es' => $p['desc_es'], 'en' => $p['desc_en']],
         'featured' => (bool)$p['featured'],
         'visible' => (bool)$p['visible'],
+        'showPrice' => array_key_exists('show_price', $p) ? (bool)$p['show_price'] : true,
         'availabilityStatus' => $p['availability_status'] ?? 'available',
         'availableFrom' => $p['available_from'] ?? '',
         'airbnbUrl' => $p['airbnb_url'] ?? '',
@@ -30,16 +31,21 @@ function admin_property_payload(array $p, array $photos): array
     ];
 }
 
-function properties_have_availability_columns(): bool
+function properties_have_column(string $column): bool
 {
-    static $hasColumns = null;
-    if ($hasColumns !== null) {
-        return $hasColumns;
+    static $columns = [];
+    if (array_key_exists($column, $columns)) {
+        return $columns[$column];
     }
 
-    $stmt = db()->query("SHOW COLUMNS FROM properties LIKE 'availability_status'");
-    $hasColumns = (bool)$stmt->fetch();
-    return $hasColumns;
+    $stmt = db()->query('SHOW COLUMNS FROM properties LIKE ' . db()->quote($column));
+    $columns[$column] = (bool)$stmt->fetch();
+    return $columns[$column];
+}
+
+function properties_have_availability_columns(): bool
+{
+    return properties_have_column('availability_status');
 }
 
 function clean_availability_status(mixed $value): string
@@ -165,6 +171,7 @@ $data = [
     'desc_en' => clean_long_text($input['desc']['en'] ?? '', 3000),
     'featured' => bool01($input['featured'] ?? false),
     'visible' => bool01($input['visible'] ?? true),
+    'show_price' => bool01($input['showPrice'] ?? true),
     'availability_status' => $availabilityStatus,
     'available_from' => $availableFrom,
     'airbnb_url' => $airbnb,
@@ -179,6 +186,7 @@ if ($data['slug'] === '') {
 
 try {
     $hasAvailability = properties_have_availability_columns();
+    $hasShowPrice = properties_have_column('show_price');
     if (!$hasAvailability && $availabilityStatus !== 'available') {
         json_response([
             'ok' => false,
@@ -191,6 +199,9 @@ try {
             'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price', 'price_unit',
             'title_es', 'title_en', 'desc_es', 'desc_en', 'featured', 'visible',
         ];
+        if ($hasShowPrice) {
+            $fields[] = 'show_price';
+        }
         if ($hasAvailability) {
             $fields[] = 'availability_status';
             $fields[] = 'available_from';
@@ -207,6 +218,9 @@ try {
             'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price', 'price_unit',
             'title_es', 'title_en', 'desc_es', 'desc_en', 'featured', 'visible',
         ];
+        if ($hasShowPrice) {
+            $fields[] = 'show_price';
+        }
         if ($hasAvailability) {
             $fields[] = 'availability_status';
             $fields[] = 'available_from';

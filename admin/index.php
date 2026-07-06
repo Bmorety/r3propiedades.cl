@@ -142,6 +142,10 @@ $csrf = csrf_token();
                     Precio
                     <input name="price" type="number" min="0" max="999999999" />
                   </label>
+                  <label class="toggle">
+                    <input name="showPrice" type="checkbox" checked />
+                    Mostrar precio
+                  </label>
                   <label>
                     Unidad
                     <select name="priceUnit">

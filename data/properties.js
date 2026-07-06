@@ -16,6 +16,7 @@
    - area      : superficie en m²
    - price     : valor numérico (sin puntos)
    - priceUnit : "noche" | "mes"
+   - showPrice : true/false para mostrar u ocultar precio
    - image     : URL de la foto (Unsplash u otra)
    - title     : { es, en }
    - desc      : { es, en }

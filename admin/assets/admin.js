@@ -129,6 +129,7 @@ function blankProperty() {
     area: 0,
     price: 0,
     priceUnit: "noche",
+    showPrice: true,
     title: { es: "", en: "" },
     desc: { es: "", en: "" },
     featured: false,
@@ -474,6 +475,7 @@ async function quickUpdateProperty(id, changes) {
     area: property.area,
     price: property.price,
     priceUnit: property.priceUnit,
+    showPrice: property.showPrice !== false,
     title: property.title,
     desc: property.desc,
     featured: property.featured,
@@ -576,6 +578,7 @@ function formSnapshot() {
     area: Number(form.area.value || 0),
     price: Number(form.price.value || 0),
     priceUnit: form.priceUnit.value || "noche",
+    showPrice: form.showPrice.checked,
     title: { es: form.titleEs.value || "", en: form.titleEn.value || "" },
     desc: { es: form.descEs.value || "", en: form.descEn.value || "" },
     featured: form.featured.checked,
@@ -595,6 +598,9 @@ function renderPreview(property = formSnapshot()) {
   const title = property.title.es || "Título de la propiedad";
   const desc = property.desc.es || "La descripción aparecerá aquí tal como se verá en la tarjeta pública.";
   const unit = property.priceUnit === "mes" ? "mes" : "noche";
+  const price = property.showPrice === false
+    ? "Precio a consultar"
+    : `${formatPrice(property.price)} <small>/ ${unit}</small>`;
 
   preview.innerHTML = `
     <article class="preview-card">
@@ -611,7 +617,7 @@ function renderPreview(property = formSnapshot()) {
           <div><dt>Baños</dt><dd>${property.bathrooms}</dd></div>
           <div><dt>M2</dt><dd>${property.area}</dd></div>
         </dl>
-        <strong>${formatPrice(property.price)} <small>/ ${unit}</small></strong>
+        <strong>${price}</strong>
       </div>
     </article>
   `;
@@ -628,6 +634,7 @@ function fillForm(property) {
   form.area.value = property.area || 0;
   form.price.value = property.price || 0;
   form.priceUnit.value = property.priceUnit || "noche";
+  form.showPrice.checked = property.showPrice !== false;
   form.sortOrder.value = property.sortOrder || 100;
   form.availabilityStatus.value = property.availabilityStatus || "available";
   form.availableFrom.value = property.availableFrom || "";
@@ -750,6 +757,7 @@ function propertyFromForm() {
     area: Number(form.area.value || 0),
     price: Number(form.price.value || 0),
     priceUnit: form.priceUnit.value,
+    showPrice: form.showPrice.checked,
     title: { es: form.titleEs.value, en: form.titleEn.value },
     desc: { es: form.descEs.value, en: form.descEn.value },
     featured: form.featured.checked,

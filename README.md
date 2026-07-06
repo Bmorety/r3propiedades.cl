@@ -60,6 +60,7 @@ php -r "echo password_hash('TU_CLAVE_SEGURA', PASSWORD_DEFAULT), PHP_EOL;"
 | `bedrooms` / `bathrooms` | nº de dormitorios / baños |
 | `area` | superficie en m² |
 | `price` / `priceUnit` | valor (sin puntos) y `"noche"` o `"mes"` |
+| `showPrice` | muestra u oculta el precio público |
 | `availabilityStatus` / `availableFrom` | disponibilidad actual, desde fecha o no disponible |
 | `photos` | hasta 12 fotos optimizadas automáticamente |
 | portada | la primera foto del orden es la imagen principal |

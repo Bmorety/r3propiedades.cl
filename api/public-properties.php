@@ -61,6 +61,7 @@ try {
             'area' => (int)$p['area'],
             'price' => (int)$p['price'],
             'priceUnit' => $p['price_unit'],
+            'showPrice' => array_key_exists('show_price', $p) ? (bool)$p['show_price'] : true,
             'image' => $cover['url'] ?? '',
             'photoCount' => $photoCounts[(int)$p['id']] ?? 0,
             'photos' => $cover ? [$cover] : [],

@@ -158,7 +158,8 @@ function normalizeProperty(p) {
     photoCount: Number(p.photoCount ?? photos.length),
     availabilityStatus: p.availabilityStatus || "",
     availableFrom: p.availableFrom || "",
-    airbnbUrl: p.airbnbUrl || p.airbnb_url || ""
+    airbnbUrl: p.airbnbUrl || p.airbnb_url || "",
+    showPrice: p.showPrice !== false
   };
 }
 
@@ -277,6 +278,9 @@ function propCard(p) {
     ? `<a class="card__airbnb" href="${esc(p.airbnbUrl)}" target="_blank" rel="noopener">${t("card.airbnb")}</a>`
     : "";
   const availability = availabilityText(p);
+  const price = p.showPrice
+    ? `<div class="price"><b>${fmtPrice(p.price)}</b><span>/ ${unit}</span></div>`
+    : "";
 
   return `
     <article class="card">
@@ -296,7 +300,7 @@ function propCard(p) {
           <span class="spec">${ICON.area} ${p.area} m²</span>
         </div>
         <div class="card__foot">
-          <div class="price"><b>${fmtPrice(p.price)}</b><span>/ ${unit}</span></div>
+          ${price}
           <div class="card__actions">
             ${airbnb}
             <a class="card__wa" href="${waLink(waMsg)}" target="_blank" rel="noopener">
