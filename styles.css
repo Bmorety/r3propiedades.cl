@@ -302,7 +302,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-color: color-mix(in srgb, #8b2f2f 24%, var(--border));
 }
 .card__title { font-family: "Fraunces", serif; font-size: 1.35rem; font-weight: 500; line-height: 1.15; }
-.card__desc { font-size: .9rem; color: var(--muted); }
+.card__desc {
+  font-size: .9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-height: 7.2rem;
+  overflow-y: auto;
+  padding-right: .35rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
 .card__specs { display: flex; gap: 1.1rem; flex-wrap: wrap; padding: .6rem 0; border-block: 1px solid var(--border); margin-top: auto; }
 .spec { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--text); font-weight: 600; }
 .spec svg { width: 1.05rem; height: 1.05rem; color: var(--accent-2); }
