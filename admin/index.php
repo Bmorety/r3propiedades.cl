@@ -179,6 +179,10 @@ $csrf = csrf_token();
                   </label>
                   <details class="span-2 admin-details">
                     <summary>Textos en inglés opcionales</summary>
+                    <div class="translation-tools">
+                      <button id="translateBtn" class="admin-btn admin-btn--ghost" type="button">Sugerir traducción</button>
+                      <p id="translateStatus" class="admin-status" role="status"></p>
+                    </div>
                     <div class="form-grid">
                       <label>
                         Título EN

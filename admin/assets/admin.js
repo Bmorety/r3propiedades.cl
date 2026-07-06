@@ -990,6 +990,41 @@ function bindPasswordToggle() {
   });
 }
 
+async function suggestTranslation() {
+  const button = $("#translateBtn");
+  const status = $("#translateStatus");
+  const title = form.titleEs.value.trim();
+  const desc = form.descEs.value.trim();
+
+  if (!title && !desc) {
+    status.textContent = "Escribe titulo o descripcion en espanol primero.";
+    return;
+  }
+
+  const hasEnglishText = form.titleEn.value.trim() || form.descEn.value.trim();
+  if (hasEnglishText && !confirm("Esto reemplazara los textos en ingles actuales. Continuar?")) {
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Generando sugerencia...";
+  try {
+    const data = await api("../api/admin-translate.php", {
+      method: "POST",
+      body: JSON.stringify({ title, desc }),
+    });
+    form.titleEn.value = data.title || "";
+    form.descEn.value = data.desc || "";
+    status.textContent = "Sugerencia lista. Puedes editarla antes de guardar.";
+    renderPreview();
+  } catch (error) {
+    if (isReauthError(error)) return;
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   $("#loginError").textContent = "";
@@ -1049,6 +1084,7 @@ form.addEventListener("change", () => {
 });
 $("#deleteBtn").addEventListener("click", deleteProperty);
 $("#photoInput").addEventListener("change", handlePhotoInputChange);
+$("#translateBtn").addEventListener("click", suggestTranslation);
 
 bindPasswordToggle();
 init().catch((error) => {

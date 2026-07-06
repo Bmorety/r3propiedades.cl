@@ -15,6 +15,11 @@ return [
         'password_hash' => '$2y$10$CAMBIAR_ESTE_HASH',
     ],
 
+    // Opcional: MyMemory puede usar email para contacto/limites, pero no es obligatorio.
+    'translation' => [
+        'mymemory_email' => '',
+    ],
+
     'uploads' => [
         'dir' => __DIR__ . '/../uploads/properties',
         'url' => 'uploads/properties',

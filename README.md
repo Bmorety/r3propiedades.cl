@@ -14,6 +14,7 @@ Hecho en **HTML / CSS / JS + PHP/MySQL** (sin frameworks), pensado para publicar
 - 🖼️ **Carga liviana en el landing**: cada tarjeta carga solo la foto principal; la galería completa se pide al abrirla.
 - 🔗 Campo opcional para link de **Airbnb** por propiedad.
 - 💬 Botones de **WhatsApp** con mensaje pre-cargado por propiedad.
+- 🌎 Sugerencia automática de traducción ES → EN en el admin usando MyMemory.
 - 📱 Diseño responsive y accesible.
 
 ## 📁 Estructura
@@ -50,6 +51,11 @@ php -r "echo password_hash('TU_CLAVE_SEGURA', PASSWORD_DEFAULT), PHP_EOL;"
 
 > `api/config.php` no se sube al repositorio porque contiene credenciales.
 > Para continuar trabajo con IA/agentes, leer tambien [`AGENTS.md`](AGENTS.md).
+
+### Traducciones opcionales
+
+El botón **Sugerir traducción** del admin usa MyMemory. No requiere cuenta ni API key para uso básico.
+Opcionalmente se puede completar `translation.mymemory_email` en `api/config.php` para asociar las llamadas a un email de contacto.
 
 ## ✏️ Campos editables
 

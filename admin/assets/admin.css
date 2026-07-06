@@ -497,6 +497,18 @@ button.status-pill {
   font-weight: 700;
 }
 
+.translation-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .7rem;
+  margin-top: .85rem;
+}
+
+.translation-tools .admin-status {
+  margin: 0;
+}
+
 .admin-details .form-grid {
   margin-top: .9rem;
 }
