@@ -7,6 +7,7 @@ const state = {
   pendingPhotoFiles: [],
   pendingPhotoUrls: [],
   photoBusy: false,
+  needsReauth: false,
 };
 
 const PHOTO_LIMIT = 12;
@@ -20,6 +21,15 @@ const form = $("#propertyForm");
 const loginForm = $("#loginForm");
 const loginPasswordInput = loginForm?.querySelector('input[name="password"]');
 const togglePasswordBtn = $("#togglePasswordBtn");
+
+class AdminRequestError extends Error {
+  constructor(message, status = 0) {
+    super(message);
+    this.name = "AdminRequestError";
+    this.status = status;
+    this.needsReauth = status === 401 || status === 419;
+  }
+}
 
 function esc(value) {
   return String(value ?? "")
@@ -67,10 +77,46 @@ async function api(url, options = {}) {
   });
   const data = await response.json();
   if (!response.ok || data.ok === false) {
-    throw new Error(data.error || "Ocurrió un error.");
+    const error = new AdminRequestError(data.error || "Ocurrió un error.", response.status);
+    if (error.needsReauth && options.reauth !== false) {
+      showLoginForReauth(error);
+    }
+    throw error;
   }
   if (data.csrf) state.csrf = data.csrf;
   return data;
+}
+
+function isReauthError(error) {
+  return Boolean(error?.needsReauth);
+}
+
+function reauthMessage(error) {
+  return error?.status === 419
+    ? "Tu sesión expiró. Ingresa de nuevo para continuar."
+    : "Por seguridad necesitamos que ingreses de nuevo para continuar.";
+}
+
+function showLoginForReauth(error) {
+  state.needsReauth = true;
+  setPhotoBusy(false);
+  $("#appView").hidden = true;
+  $("#loginView").hidden = false;
+  $("#loginError").textContent = reauthMessage(error);
+  if (loginPasswordInput) {
+    loginPasswordInput.value = "";
+    loginPasswordInput.focus();
+  }
+}
+
+function parseAdminResponse(response, fallbackMessage) {
+  return response.json().then((data) => {
+    if (!response.ok || data.ok === false) {
+      throw new AdminRequestError(data.error || fallbackMessage, response.status);
+    }
+    if (data.csrf) state.csrf = data.csrf;
+    return data;
+  });
 }
 
 function blankProperty() {
@@ -227,7 +273,11 @@ function sendPhotoForm(body, onUploadProgress) {
       }
 
       if (request.status < 200 || request.status >= 300 || data.ok === false) {
-        reject(new Error(data.error || "No se pudieron subir las fotos."));
+        const error = new AdminRequestError(data.error || "No se pudieron subir las fotos.", request.status);
+        if (error.needsReauth) {
+          showLoginForReauth(error);
+        }
+        reject(error);
         return;
       }
       resolve(data);
@@ -453,6 +503,7 @@ async function toggleVisibleFromDashboard(id) {
   try {
     await quickUpdateProperty(id, { visible: !property.visible });
   } catch (error) {
+    if (isReauthError(error)) return;
     alert(error.message);
   }
 }
@@ -477,6 +528,7 @@ async function updateAvailabilityFromDashboard(id, select) {
   try {
     await quickUpdateProperty(id, { availabilityStatus: status, availableFrom });
   } catch (error) {
+    if (isReauthError(error)) return;
     alert(error.message);
     select.value = property.availabilityStatus;
   }
@@ -733,6 +785,7 @@ async function saveProperty(event) {
     fillForm(getCurrentProperty());
     $("#saveStatus").textContent = pendingCount ? "Propiedad y fotos guardadas." : "Guardado.";
   } catch (error) {
+    if (isReauthError(error)) return;
     $("#saveStatus").textContent = error.message;
   }
 }
@@ -750,6 +803,7 @@ async function deleteProperty() {
     showDashboard();
     $("#saveStatus").textContent = "Eliminado.";
   } catch (error) {
+    if (isReauthError(error)) return;
     $("#saveStatus").textContent = error.message;
   }
 }
@@ -818,6 +872,7 @@ async function uploadPhotos(filesArg = null, propertyIdArg = null, reload = true
     });
     return data;
   } catch (error) {
+    if (isReauthError(error)) throw error;
     $("#photoStatus").textContent = error.message;
     updatePhotoProgress({
       title: "No se pudo completar la subida",
@@ -862,11 +917,14 @@ async function deletePhoto(id) {
       credentials: "same-origin",
       body,
     });
-    const data = await response.json();
-    if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudo borrar la foto.");
+    await parseAdminResponse(response, "No se pudo borrar la foto.");
     await loadProperties();
     $("#photoStatus").textContent = "Foto eliminada.";
   } catch (error) {
+    if (isReauthError(error)) {
+      showLoginForReauth(error);
+      return;
+    }
     $("#photoStatus").textContent = error.message;
   } finally {
     setPhotoBusy(false);
@@ -888,11 +946,14 @@ async function makeCover(id) {
       credentials: "same-origin",
       body,
     });
-    const data = await response.json();
-    if (!response.ok || data.ok === false) throw new Error(data.error || "No se pudo cambiar la foto principal.");
+    await parseAdminResponse(response, "No se pudo cambiar la foto principal.");
     await loadProperties();
     $("#photoStatus").textContent = "Foto principal actualizada.";
   } catch (error) {
+    if (isReauthError(error)) {
+      showLoginForReauth(error);
+      return;
+    }
     $("#photoStatus").textContent = error.message;
   } finally {
     setPhotoBusy(false);
@@ -900,7 +961,7 @@ async function makeCover(id) {
 }
 
 async function init() {
-  const auth = await api("../api/admin-auth.php");
+  const auth = await api("../api/admin-auth.php", { reauth: false });
   state.csrf = auth.csrf || state.csrf;
   $("#loginView").hidden = auth.authenticated;
   $("#appView").hidden = !auth.authenticated;
@@ -927,6 +988,7 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const data = await api("../api/admin-auth.php", {
       method: "POST",
+      reauth: false,
       body: JSON.stringify({
         action: "login",
         username: event.currentTarget.username.value,
@@ -936,7 +998,16 @@ loginForm.addEventListener("submit", async (event) => {
     state.csrf = data.csrf || state.csrf;
     $("#loginView").hidden = true;
     $("#appView").hidden = false;
-    await loadProperties();
+    if (state.needsReauth) {
+      state.needsReauth = false;
+      if (state.mode === "editor") {
+        $("#saveStatus").textContent = "Sesión reiniciada. Revisa y guarda nuevamente.";
+      } else {
+        await loadProperties();
+      }
+    } else {
+      await loadProperties();
+    }
   } catch (error) {
     $("#loginError").textContent = error.message;
   }
@@ -974,5 +1045,7 @@ $("#photoInput").addEventListener("change", handlePhotoInputChange);
 bindPasswordToggle();
 init().catch((error) => {
   $("#loginView").hidden = false;
-  $("#loginError").textContent = error.message;
+  if (!isReauthError(error)) {
+    $("#loginError").textContent = error.message;
+  }
 });
