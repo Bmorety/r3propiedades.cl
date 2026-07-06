@@ -12,7 +12,7 @@ const I18N = {
   es: {
     "brand.tag": "Corretaje costero",
     "hero.eyebrow": "Concón · Reñaca · Viña del Mar",
-    "hero.title": "Vive el verano <em>todo el año</em> frente al Pacífico",
+    "hero.title": "Vive el verano <em>todo el año</em> frente al mar",
     "hero.lead": "Arriendo de departamentos por temporada y año corrido en las mejores zonas costeras de la Quinta Región.",
     "hero.cta1": "Ver propiedades",
     "hero.cta2": "Hablar con Rodrigo",
@@ -68,7 +68,7 @@ const I18N = {
   en: {
     "brand.tag": "Coastal real estate",
     "hero.eyebrow": "Concón · Reñaca · Viña del Mar",
-    "hero.title": "Live summer <em>all year long</em> by the Pacific",
+    "hero.title": "Live summer <em>all year long</em> by the sea",
     "hero.lead": "Apartment rentals — seasonal and year-round — in the best coastal areas of Chile's Fifth Region.",
     "hero.cta1": "View properties",
     "hero.cta2": "Chat with Rodrigo",
