@@ -65,7 +65,7 @@ Opcionalmente se puede completar `translation.mymemory_email` en `api/config.php
 | `zone` | comuna o sector |
 | `bedrooms` / `bathrooms` | nº de dormitorios / baños |
 | `area` | superficie en m² |
-| `price` / `priceCurrency` / `priceUnit` | valor (sin puntos), moneda `"clp"` o `"uf"`, y unidad `"noche"` o `"mes"` |
+| `price` / `priceCurrency` / `priceUnit` | valor (sin puntos), moneda `"clp"` o `"uf"`; unidad `"noche"` o `"mes"` sólo para arriendos |
 | `showPrice` | muestra u oculta el precio público |
 | `availabilityStatus` / `availableFrom` | disponibilidad actual, desde fecha o no disponible |
 | `photos` | hasta 12 fotos optimizadas automáticamente |

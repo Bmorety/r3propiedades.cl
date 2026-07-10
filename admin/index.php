@@ -154,7 +154,7 @@ $csrf = csrf_token();
                     <input name="showPrice" type="checkbox" checked />
                     Mostrar precio
                   </label>
-                  <label>
+                  <label id="priceUnitField">
                     Unidad
                     <select name="priceUnit">
                       <option value="noche">Noche</option>

@@ -289,8 +289,9 @@ function propCard(p) {
     ? `<a class="card__airbnb" href="${esc(p.airbnbUrl)}" target="_blank" rel="noopener">${t("card.airbnb")}</a>`
     : "";
   const availability = availabilityText(p);
+  const unitSuffix = isSale ? "" : `<span>/ ${unit}</span>`;
   const price = p.showPrice
-    ? `<div class="price"><b>${fmtPrice(p.price, p.priceCurrency)}</b><span>/ ${unit}</span></div>`
+    ? `<div class="price"><b>${fmtPrice(p.price, p.priceCurrency)}</b>${unitSuffix}</div>`
     : "";
 
   return `

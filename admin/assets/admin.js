@@ -566,6 +566,12 @@ function toggleAvailableFrom() {
   if (!needsDate) form.availableFrom.value = "";
 }
 
+function togglePriceUnitField() {
+  const field = $("#priceUnitField");
+  if (!field) return;
+  field.hidden = form.type.value === "venta";
+}
+
 function formSnapshot() {
   const savedPhotos = getCurrentProperty()?.photos || [];
   const pendingPhotos = state.pendingPhotoUrls.map((url, index) => ({
@@ -604,9 +610,10 @@ function renderPreview(property = formSnapshot()) {
   const title = property.title.es || "Título de la propiedad";
   const desc = property.desc.es || "La descripción aparecerá aquí tal como se verá en la tarjeta pública.";
   const unit = property.priceUnit === "mes" ? "mes" : "noche";
+  const unitSuffix = property.type === "venta" ? "" : ` <small>/ ${unit}</small>`;
   const price = property.showPrice === false
     ? "Precio a consultar"
-    : `${formatPrice(property.price, property.priceCurrency)} <small>/ ${unit}</small>`;
+    : `${formatPrice(property.price, property.priceCurrency)}${unitSuffix}`;
 
   preview.innerHTML = `
     <article class="preview-card">
@@ -653,6 +660,7 @@ function fillForm(property) {
   $("#editorTitle").textContent = property.id ? property.title.es || "Editar propiedad" : "Nueva propiedad";
   $("#deleteBtn").hidden = !property.id;
   toggleAvailableFrom();
+  togglePriceUnitField();
   renderPreview(property);
   renderPhotos(property.photos || []);
 }
@@ -1088,6 +1096,7 @@ form.addEventListener("submit", saveProperty);
 form.addEventListener("input", () => renderPreview());
 form.addEventListener("change", () => {
   toggleAvailableFrom();
+  togglePriceUnitField();
   renderPreview();
 });
 $("#deleteBtn").addEventListener("click", deleteProperty);
