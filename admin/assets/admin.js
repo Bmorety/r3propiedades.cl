@@ -53,10 +53,10 @@ function photoCountText(count) {
   return `${count} foto${count === 1 ? "" : "s"}`;
 }
 
-function formatPrice(value, unit = "mes") {
+function formatPrice(value, currency = "clp") {
   const number = Number(value || 0);
   if (number <= 0) return "Precio por definir";
-  if (unit === "uf") return `UF ${number.toLocaleString("es-CL")}`;
+  if (currency === "uf") return `UF ${number.toLocaleString("es-CL")}`;
   return `$${number.toLocaleString("es-CL")} CLP`;
 }
 
@@ -130,6 +130,7 @@ function blankProperty() {
     bathrooms: 1,
     area: 0,
     price: 0,
+    priceCurrency: "clp",
     priceUnit: "noche",
     showPrice: true,
     title: { es: "", en: "" },
@@ -477,6 +478,7 @@ async function quickUpdateProperty(id, changes) {
     bathrooms: property.bathrooms,
     area: property.area,
     price: property.price,
+    priceCurrency: property.priceCurrency || "clp",
     priceUnit: property.priceUnit,
     showPrice: property.showPrice !== false,
     title: property.title,
@@ -564,16 +566,6 @@ function toggleAvailableFrom() {
   if (!needsDate) form.availableFrom.value = "";
 }
 
-function syncPriceUnitForType() {
-  if (form.type.value === "venta") {
-    form.priceUnit.value = "uf";
-    return;
-  }
-  if (form.priceUnit.value === "uf") {
-    form.priceUnit.value = form.type.value === "anio" ? "mes" : "noche";
-  }
-}
-
 function formSnapshot() {
   const savedPhotos = getCurrentProperty()?.photos || [];
   const pendingPhotos = state.pendingPhotoUrls.map((url, index) => ({
@@ -590,6 +582,7 @@ function formSnapshot() {
     bathrooms: Number(form.bathrooms.value || 0),
     area: Number(form.area.value || 0),
     price: Number(form.price.value || 0),
+    priceCurrency: form.priceCurrency.value || "clp",
     priceUnit: form.priceUnit.value || "noche",
     showPrice: form.showPrice.checked,
     title: { es: form.titleEs.value || "", en: form.titleEn.value || "" },
@@ -610,10 +603,10 @@ function renderPreview(property = formSnapshot()) {
   const cover = coverPhoto ? (coverPhoto.pending ? coverPhoto.url : `../${coverPhoto.url}`) : "../assets/hero.jpg";
   const title = property.title.es || "Título de la propiedad";
   const desc = property.desc.es || "La descripción aparecerá aquí tal como se verá en la tarjeta pública.";
-  const unit = property.priceUnit === "uf" ? "UF" : (property.priceUnit === "mes" ? "mes" : "noche");
+  const unit = property.priceUnit === "mes" ? "mes" : "noche";
   const price = property.showPrice === false
     ? "Precio a consultar"
-    : `${formatPrice(property.price, property.priceUnit)}${property.priceUnit === "uf" ? "" : ` <small>/ ${unit}</small>`}`;
+    : `${formatPrice(property.price, property.priceCurrency)} <small>/ ${unit}</small>`;
 
   preview.innerHTML = `
     <article class="preview-card">
@@ -646,6 +639,7 @@ function fillForm(property) {
   form.bathrooms.value = property.bathrooms || 0;
   form.area.value = property.area || 0;
   form.price.value = property.price || 0;
+  form.priceCurrency.value = property.priceCurrency || "clp";
   form.priceUnit.value = property.priceUnit || "noche";
   form.showPrice.checked = property.showPrice !== false;
   form.sortOrder.value = property.sortOrder || 100;
@@ -656,7 +650,6 @@ function fillForm(property) {
   form.descEn.value = property.desc.en || "";
   form.visible.checked = property.visible !== false;
   form.featured.checked = Boolean(property.featured);
-  syncPriceUnitForType();
   $("#editorTitle").textContent = property.id ? property.title.es || "Editar propiedad" : "Nueva propiedad";
   $("#deleteBtn").hidden = !property.id;
   toggleAvailableFrom();
@@ -761,7 +754,6 @@ async function loadProperties() {
 }
 
 function propertyFromForm() {
-  syncPriceUnitForType();
   return {
     action: "save",
     id: Number(form.id.value || 0),
@@ -771,6 +763,7 @@ function propertyFromForm() {
     bathrooms: Number(form.bathrooms.value || 0),
     area: Number(form.area.value || 0),
     price: Number(form.price.value || 0),
+    priceCurrency: form.priceCurrency.value,
     priceUnit: form.priceUnit.value,
     showPrice: form.showPrice.checked,
     title: { es: form.titleEs.value, en: form.titleEn.value },
@@ -1093,8 +1086,7 @@ $("#listFilters").addEventListener("click", (event) => {
 
 form.addEventListener("submit", saveProperty);
 form.addEventListener("input", () => renderPreview());
-form.addEventListener("change", (event) => {
-  if (event.target === form.type || event.target === form.priceUnit) syncPriceUnitForType();
+form.addEventListener("change", () => {
   toggleAvailableFrom();
   renderPreview();
 });

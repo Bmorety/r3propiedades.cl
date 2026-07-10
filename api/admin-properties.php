@@ -17,7 +17,10 @@ function admin_property_payload(array $p, array $photos): array
         'bathrooms' => (int)$p['bathrooms'],
         'area' => (int)$p['area'],
         'price' => (int)$p['price'],
-        'priceUnit' => $p['price_unit'],
+        'priceCurrency' => array_key_exists('price_currency', $p)
+            ? $p['price_currency']
+            : (($p['price_unit'] ?? '') === 'uf' ? 'uf' : 'clp'),
+        'priceUnit' => ($p['price_unit'] ?? '') === 'uf' ? 'mes' : $p['price_unit'],
         'title' => ['es' => $p['title_es'], 'en' => $p['title_en']],
         'desc' => ['es' => $p['desc_es'], 'en' => $p['desc_en']],
         'featured' => (bool)$p['featured'],
@@ -143,11 +146,11 @@ if ($titleEs === '') {
 }
 
 $type = in_array(($input['type'] ?? ''), ['temporada', 'anio', 'venta'], true) ? $input['type'] : 'temporada';
-$priceUnit = in_array(($input['priceUnit'] ?? ''), ['noche', 'mes', 'uf'], true) ? $input['priceUnit'] : 'noche';
-if ($type === 'venta') {
-    $priceUnit = 'uf';
-} elseif ($priceUnit === 'uf') {
-    $priceUnit = $type === 'anio' ? 'mes' : 'noche';
+$priceCurrency = in_array(($input['priceCurrency'] ?? ''), ['clp', 'uf'], true) ? $input['priceCurrency'] : 'clp';
+$priceUnit = in_array(($input['priceUnit'] ?? ''), ['noche', 'mes'], true) ? $input['priceUnit'] : 'noche';
+if (($input['priceUnit'] ?? '') === 'uf') {
+    $priceCurrency = 'uf';
+    $priceUnit = 'mes';
 }
 $availabilityStatus = clean_availability_status($input['availabilityStatus'] ?? 'available');
 $availableFrom = $availabilityStatus === 'available_from'
@@ -169,6 +172,7 @@ $data = [
     'bathrooms' => max(0, min(20, (int)($input['bathrooms'] ?? 0))),
     'area' => max(0, min(10000, (int)($input['area'] ?? 0))),
     'price' => max(0, min(999999999, (int)($input['price'] ?? 0))),
+    'price_currency' => $priceCurrency,
     'price_unit' => $priceUnit,
     'title_es' => $titleEs,
     'title_en' => clean_text($input['title']['en'] ?? '', 180),
@@ -192,6 +196,7 @@ if ($data['slug'] === '') {
 try {
     $hasAvailability = properties_have_availability_columns();
     $hasShowPrice = properties_have_column('show_price');
+    $hasPriceCurrency = properties_have_column('price_currency');
     if (!$hasAvailability && $availabilityStatus !== 'available') {
         json_response([
             'ok' => false,
@@ -201,9 +206,13 @@ try {
 
     if ($id > 0) {
         $fields = [
-            'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price', 'price_unit',
+            'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price',
             'title_es', 'title_en', 'desc_es', 'desc_en', 'featured', 'visible',
         ];
+        if ($hasPriceCurrency) {
+            $fields[] = 'price_currency';
+        }
+        $fields[] = 'price_unit';
         if ($hasShowPrice) {
             $fields[] = 'show_price';
         }
@@ -220,9 +229,13 @@ try {
         db()->prepare($sql)->execute($values);
     } else {
         $fields = [
-            'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price', 'price_unit',
+            'slug', 'type', 'zone', 'bedrooms', 'bathrooms', 'area', 'price',
             'title_es', 'title_en', 'desc_es', 'desc_en', 'featured', 'visible',
         ];
+        if ($hasPriceCurrency) {
+            $fields[] = 'price_currency';
+        }
+        $fields[] = 'price_unit';
         if ($hasShowPrice) {
             $fields[] = 'show_price';
         }

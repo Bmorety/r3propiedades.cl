@@ -143,6 +143,13 @@ $csrf = csrf_token();
                     Precio
                     <input name="price" type="number" min="0" max="999999999" />
                   </label>
+                  <label>
+                    Moneda
+                    <select name="priceCurrency">
+                      <option value="clp">CLP</option>
+                      <option value="uf">UF</option>
+                    </select>
+                  </label>
                   <label class="toggle">
                     <input name="showPrice" type="checkbox" checked />
                     Mostrar precio
@@ -152,7 +159,6 @@ $csrf = csrf_token();
                     <select name="priceUnit">
                       <option value="noche">Noche</option>
                       <option value="mes">Mes</option>
-                      <option value="uf">UF</option>
                     </select>
                   </label>
                   <label>

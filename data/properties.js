@@ -16,7 +16,8 @@
    - bathrooms : nº de baños
    - area      : superficie en m²
    - price     : valor numérico (sin puntos)
-   - priceUnit : "noche" | "mes" | "uf"
+   - priceCurrency : "clp" | "uf"
+   - priceUnit : "noche" | "mes"
    - showPrice : true/false para mostrar u ocultar precio
    - image     : URL de la foto (Unsplash u otra)
    - title     : { es, en }
@@ -33,6 +34,7 @@ window.R3_PROPERTIES = [
     bathrooms: 2,
     area: 110,
     price: 980000,
+    priceCurrency: "clp",
     priceUnit: "mes",
     image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
     title: { es: "Departamento Mirador del Mar", en: "Ocean View Apartment" },
@@ -50,6 +52,7 @@ window.R3_PROPERTIES = [
     bathrooms: 2,
     area: 78,
     price: 95000,
+    priceCurrency: "clp",
     priceUnit: "noche",
     image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=80",
     title: { es: "Frente a las Dunas", en: "Facing the Dunes" },
@@ -67,6 +70,7 @@ window.R3_PROPERTIES = [
     bathrooms: 1,
     area: 42,
     price: 520000,
+    priceCurrency: "clp",
     priceUnit: "mes",
     image: "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=900&q=80",
     title: { es: "Studio Plaza Viña", en: "Plaza Viña Studio" },
@@ -83,6 +87,7 @@ window.R3_PROPERTIES = [
     bathrooms: 2,
     area: 84,
     price: 720000,
+    priceCurrency: "clp",
     priceUnit: "mes",
     image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80",
     title: { es: "Bosques de Montemar", en: "Montemar Forest" },
@@ -99,6 +104,7 @@ window.R3_PROPERTIES = [
     bathrooms: 3,
     area: 130,
     price: 140000,
+    priceCurrency: "clp",
     priceUnit: "noche",
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=80",
     title: { es: "Cumbres de Reñaca", en: "Reñaca Heights" },
@@ -116,6 +122,7 @@ window.R3_PROPERTIES = [
     bathrooms: 1,
     area: 66,
     price: 640000,
+    priceCurrency: "clp",
     priceUnit: "mes",
     image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=80",
     title: { es: "Recreo con Vista", en: "Recreo with a View" },
@@ -132,6 +139,7 @@ window.R3_PROPERTIES = [
     bathrooms: 1,
     area: 48,
     price: 70000,
+    priceCurrency: "clp",
     priceUnit: "noche",
     image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
     title: { es: "Bahía de Concón", en: "Concón Bay" },
@@ -148,6 +156,7 @@ window.R3_PROPERTIES = [
     bathrooms: 2,
     area: 80,
     price: 750000,
+    priceCurrency: "clp",
     priceUnit: "mes",
     image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=900&q=80",
     title: { es: "Costa Reñaca", en: "Reñaca Coast" },
@@ -164,7 +173,8 @@ window.R3_PROPERTIES = [
     bathrooms: 2,
     area: 104,
     price: 7200,
-    priceUnit: "uf",
+    priceCurrency: "uf",
+    priceUnit: "mes",
     image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
     title: { es: "Departamento Costa de Montemar", en: "Costa de Montemar Apartment" },
     desc: {

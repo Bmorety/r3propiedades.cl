@@ -60,7 +60,10 @@ try {
             'bathrooms' => (int)$p['bathrooms'],
             'area' => (int)$p['area'],
             'price' => (int)$p['price'],
-            'priceUnit' => $p['price_unit'],
+            'priceCurrency' => array_key_exists('price_currency', $p)
+                ? $p['price_currency']
+                : (($p['price_unit'] ?? '') === 'uf' ? 'uf' : 'clp'),
+            'priceUnit' => ($p['price_unit'] ?? '') === 'uf' ? 'mes' : $p['price_unit'],
             'showPrice' => array_key_exists('show_price', $p) ? (bool)$p['show_price'] : true,
             'image' => $cover['url'] ?? '',
             'photoCount' => $photoCounts[(int)$p['id']] ?? 0,

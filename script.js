@@ -53,7 +53,6 @@ const I18N = {
     "u.baths": "baños",
     "u.night": "noche",
     "u.month": "mes",
-    "u.uf": "UF",
     "tag.temporada": "Temporada",
     "tag.anio": "Año corrido",
     "tag.venta": "Venta",
@@ -110,7 +109,6 @@ const I18N = {
     "u.baths": "bath",
     "u.night": "night",
     "u.month": "month",
-    "u.uf": "UF",
     "tag.temporada": "Seasonal",
     "tag.anio": "Year-round",
     "tag.venta": "For sale",
@@ -142,9 +140,9 @@ const ICON = {
 };
 
 /* ---------- Formato de precio ---------- */
-function fmtPrice(value, unit = "mes") {
+function fmtPrice(value, currency = "clp") {
   const number = Number(value || 0);
-  if (unit === "uf") return `UF ${number.toLocaleString("es-CL")}`;
+  if (currency === "uf") return `UF ${number.toLocaleString("es-CL")}`;
   return "$" + number.toLocaleString("es-CL") + " CLP";
 }
 
@@ -169,7 +167,8 @@ function normalizeProperty(p) {
     availabilityStatus: p.availabilityStatus || "",
     availableFrom: p.availableFrom || "",
     airbnbUrl: p.airbnbUrl || p.airbnb_url || "",
-    priceUnit: p.type === "venta" ? "uf" : (p.priceUnit || "mes"),
+    priceCurrency: p.priceCurrency || p.price_currency || (p.priceUnit === "uf" ? "uf" : "clp"),
+    priceUnit: p.priceUnit === "uf" ? "mes" : (p.priceUnit || "mes"),
     showPrice: p.showPrice !== false
   };
 }
@@ -279,7 +278,7 @@ function matchesFilters(p) {
 function propCard(p) {
   const isSeason = p.type === "temporada";
   const isSale = p.type === "venta";
-  const unit = p.priceUnit === "uf" ? t("u.uf") : (p.priceUnit === "noche" ? t("u.night") : t("u.month"));
+  const unit = p.priceUnit === "noche" ? t("u.night") : t("u.month");
   const title = p.title[lang] || p.title.es || "";
   const desc = p.desc[lang] || p.desc.es || "";
   const waMsg = t("wa.prop")
@@ -291,7 +290,7 @@ function propCard(p) {
     : "";
   const availability = availabilityText(p);
   const price = p.showPrice
-    ? `<div class="price"><b>${fmtPrice(p.price, p.priceUnit)}</b>${p.priceUnit === "uf" ? "" : `<span>/ ${unit}</span>`}</div>`
+    ? `<div class="price"><b>${fmtPrice(p.price, p.priceCurrency)}</b><span>/ ${unit}</span></div>`
     : "";
 
   return `
