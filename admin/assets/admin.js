@@ -53,9 +53,11 @@ function photoCountText(count) {
   return `${count} foto${count === 1 ? "" : "s"}`;
 }
 
-function formatPrice(value) {
+function formatPrice(value, unit = "mes") {
   const number = Number(value || 0);
-  return number > 0 ? `$${number.toLocaleString("es-CL")} CLP` : "Precio por definir";
+  if (number <= 0) return "Precio por definir";
+  if (unit === "uf") return `UF ${number.toLocaleString("es-CL")}`;
+  return `$${number.toLocaleString("es-CL")} CLP`;
 }
 
 function formatDate(value) {
@@ -328,6 +330,7 @@ function nextSortOrder() {
 }
 
 function typeLabel(type) {
+  if (type === "venta") return "Venta";
   return type === "anio" ? "Año corrido" : "Temporada";
 }
 
@@ -561,6 +564,16 @@ function toggleAvailableFrom() {
   if (!needsDate) form.availableFrom.value = "";
 }
 
+function syncPriceUnitForType() {
+  if (form.type.value === "venta") {
+    form.priceUnit.value = "uf";
+    return;
+  }
+  if (form.priceUnit.value === "uf") {
+    form.priceUnit.value = form.type.value === "anio" ? "mes" : "noche";
+  }
+}
+
 function formSnapshot() {
   const savedPhotos = getCurrentProperty()?.photos || [];
   const pendingPhotos = state.pendingPhotoUrls.map((url, index) => ({
@@ -597,10 +610,10 @@ function renderPreview(property = formSnapshot()) {
   const cover = coverPhoto ? (coverPhoto.pending ? coverPhoto.url : `../${coverPhoto.url}`) : "../assets/hero.jpg";
   const title = property.title.es || "Título de la propiedad";
   const desc = property.desc.es || "La descripción aparecerá aquí tal como se verá en la tarjeta pública.";
-  const unit = property.priceUnit === "mes" ? "mes" : "noche";
+  const unit = property.priceUnit === "uf" ? "UF" : (property.priceUnit === "mes" ? "mes" : "noche");
   const price = property.showPrice === false
     ? "Precio a consultar"
-    : `${formatPrice(property.price)} <small>/ ${unit}</small>`;
+    : `${formatPrice(property.price, property.priceUnit)}${property.priceUnit === "uf" ? "" : ` <small>/ ${unit}</small>`}`;
 
   preview.innerHTML = `
     <article class="preview-card">
@@ -643,6 +656,7 @@ function fillForm(property) {
   form.descEn.value = property.desc.en || "";
   form.visible.checked = property.visible !== false;
   form.featured.checked = Boolean(property.featured);
+  syncPriceUnitForType();
   $("#editorTitle").textContent = property.id ? property.title.es || "Editar propiedad" : "Nueva propiedad";
   $("#deleteBtn").hidden = !property.id;
   toggleAvailableFrom();
@@ -747,6 +761,7 @@ async function loadProperties() {
 }
 
 function propertyFromForm() {
+  syncPriceUnitForType();
   return {
     action: "save",
     id: Number(form.id.value || 0),
@@ -1078,7 +1093,8 @@ $("#listFilters").addEventListener("click", (event) => {
 
 form.addEventListener("submit", saveProperty);
 form.addEventListener("input", () => renderPreview());
-form.addEventListener("change", () => {
+form.addEventListener("change", (event) => {
+  if (event.target === form.type || event.target === form.priceUnit) syncPriceUnitForType();
   toggleAvailableFrom();
   renderPreview();
 });

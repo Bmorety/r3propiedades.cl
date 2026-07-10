@@ -142,8 +142,13 @@ if ($titleEs === '') {
     json_response(['ok' => false, 'error' => 'El título en español es obligatorio.'], 422);
 }
 
-$type = in_array(($input['type'] ?? ''), ['temporada', 'anio'], true) ? $input['type'] : 'temporada';
-$priceUnit = in_array(($input['priceUnit'] ?? ''), ['noche', 'mes'], true) ? $input['priceUnit'] : 'noche';
+$type = in_array(($input['type'] ?? ''), ['temporada', 'anio', 'venta'], true) ? $input['type'] : 'temporada';
+$priceUnit = in_array(($input['priceUnit'] ?? ''), ['noche', 'mes', 'uf'], true) ? $input['priceUnit'] : 'noche';
+if ($type === 'venta') {
+    $priceUnit = 'uf';
+} elseif ($priceUnit === 'uf') {
+    $priceUnit = $type === 'anio' ? 'mes' : 'noche';
+}
 $availabilityStatus = clean_availability_status($input['availabilityStatus'] ?? 'available');
 $availableFrom = $availabilityStatus === 'available_from'
     ? clean_date_value($input['availableFrom'] ?? '')

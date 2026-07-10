@@ -13,7 +13,7 @@ const I18N = {
     "brand.tag": "Corretaje costero",
     "hero.eyebrow": "Concón · Reñaca · Viña del Mar",
     "hero.title": "Vive el verano <em>todo el año</em> frente al mar",
-    "hero.lead": "Arriendo de departamentos por temporada y año corrido en las mejores zonas costeras de la Quinta Región.",
+    "hero.lead": "Arriendo y venta de propiedades seleccionadas en las mejores zonas costeras de la Quinta Región.",
     "hero.cta1": "Ver propiedades",
     "hero.cta2": "Hablar con Rodrigo",
     "intro.eyebrow": "Corretaje boutique",
@@ -23,16 +23,17 @@ const I18N = {
     "intro.stat2": "Años en la zona",
     "intro.stat3": "Trato personal",
     "props.eyebrow": "Disponibles ahora",
-    "props.title": "Propiedades en arriendo",
-    "props.sub": "Filtra por dormitorios y tipo de arriendo para encontrar tu próximo hogar frente al mar.",
+    "props.title": "Propiedades en arriendo y venta",
+    "props.sub": "Filtra por dormitorios y tipo de propiedad para encontrar tu próximo lugar frente al mar.",
     "filter.type": "Tipo",
     "filter.all": "Todas",
     "filter.season": "Temporada",
     "filter.year": "Año corrido",
+    "filter.sale": "Venta",
     "filter.rooms": "Dormitorios",
     "about.eyebrow": "Quién está detrás",
     "about.title": "Hola, soy Rodrigo",
-    "about.p1": "Corredor de propiedades y enamorado de la costa. Deportista, activo y sociable: me vas a encontrar tanto cerrando un arriendo como trotando por la costanera de Concón.",
+    "about.p1": "Corredor de propiedades y enamorado de la costa. Deportista, activo y sociable: me vas a encontrar tanto gestionando propiedades como trotando por la costanera de Concón.",
     "about.p2": "Creé R3 Propiedades para ofrecer lo que a mí me gustaría recibir: cercanía real, respuestas rápidas y cero letra chica. Aquí tratas siempre con la misma persona.",
     "about.badge": "Rodrigo Rojas R.",
     "about.t1": "🏃 Deportista",
@@ -40,7 +41,7 @@ const I18N = {
     "about.t3": "🌊 Local de la costa",
     "contact.eyebrow": "Conversemos",
     "contact.title": "¿Buscas tu próximo lugar frente al mar?",
-    "contact.sub": "Escríbeme por WhatsApp y te ayudo a encontrar la propiedad ideal, sea por temporada o año corrido.",
+    "contact.sub": "Escríbeme por WhatsApp y te ayudo a encontrar la propiedad ideal, sea para arriendo o compra.",
     "contact.waText": "Escribir por WhatsApp",
     "contact.email": "Enviar un correo",
     "nav.props": "Propiedades",
@@ -52,8 +53,10 @@ const I18N = {
     "u.baths": "baños",
     "u.night": "noche",
     "u.month": "mes",
+    "u.uf": "UF",
     "tag.temporada": "Temporada",
     "tag.anio": "Año corrido",
+    "tag.venta": "Venta",
     "card.wa": "Consultar",
     "card.airbnb": "Airbnb",
     "card.photos": "Ver fotos",
@@ -68,7 +71,7 @@ const I18N = {
     "brand.tag": "Coastal real estate",
     "hero.eyebrow": "Concón · Reñaca · Viña del Mar",
     "hero.title": "Live summer <em>all year long</em> by the sea",
-    "hero.lead": "Apartment rentals — seasonal and year-round — in the best coastal areas of Chile's Fifth Region.",
+    "hero.lead": "Selected properties for rent and sale in the best coastal areas of Chile's Fifth Region.",
     "hero.cta1": "View properties",
     "hero.cta2": "Chat with Rodrigo",
     "intro.eyebrow": "Boutique brokerage",
@@ -78,16 +81,17 @@ const I18N = {
     "intro.stat2": "Years in the area",
     "intro.stat3": "Personal service",
     "props.eyebrow": "Available now",
-    "props.title": "Properties for rent",
-    "props.sub": "Filter by bedrooms and rental type to find your next home by the sea.",
+    "props.title": "Properties for rent and sale",
+    "props.sub": "Filter by bedrooms and property type to find your next place by the sea.",
     "filter.type": "Type",
     "filter.all": "All",
     "filter.season": "Seasonal",
     "filter.year": "Year-round",
+    "filter.sale": "For sale",
     "filter.rooms": "Bedrooms",
     "about.eyebrow": "Who's behind it",
     "about.title": "Hi, I'm Rodrigo",
-    "about.p1": "Real estate broker and coast lover. Athletic, active and social — you'll find me both closing a rental and jogging along Concón's boardwalk.",
+    "about.p1": "Real estate broker and coast lover. Athletic, active and social — you'll find me both managing properties and jogging along Concón's boardwalk.",
     "about.p2": "I built R3 Propiedades to offer what I'd like to receive myself: real closeness, fast answers and zero fine print. Here you always deal with the same person.",
     "about.badge": "Rodrigo Rojas R.",
     "about.t1": "🏃 Athlete",
@@ -95,7 +99,7 @@ const I18N = {
     "about.t3": "🌊 Coast local",
     "contact.eyebrow": "Let's talk",
     "contact.title": "Looking for your next place by the sea?",
-    "contact.sub": "Message me on WhatsApp and I'll help you find the ideal property, seasonal or year-round.",
+    "contact.sub": "Message me on WhatsApp and I'll help you find the ideal property, whether for rent or purchase.",
     "contact.waText": "Message on WhatsApp",
     "contact.email": "Send an email",
     "nav.props": "Properties",
@@ -106,8 +110,10 @@ const I18N = {
     "u.baths": "bath",
     "u.night": "night",
     "u.month": "month",
+    "u.uf": "UF",
     "tag.temporada": "Seasonal",
     "tag.anio": "Year-round",
+    "tag.venta": "For sale",
     "card.wa": "Enquire",
     "card.airbnb": "Airbnb",
     "card.photos": "Photos",
@@ -135,8 +141,12 @@ const ICON = {
   area: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3h18v18H3zM3 9h18M9 3v18"/></svg>'
 };
 
-/* ---------- Formato de precio CLP ---------- */
-const fmtPrice = (n) => "$" + n.toLocaleString("es-CL") + " CLP";
+/* ---------- Formato de precio ---------- */
+function fmtPrice(value, unit = "mes") {
+  const number = Number(value || 0);
+  if (unit === "uf") return `UF ${number.toLocaleString("es-CL")}`;
+  return "$" + number.toLocaleString("es-CL") + " CLP";
+}
 
 function esc(value) {
   return String(value ?? "")
@@ -159,6 +169,7 @@ function normalizeProperty(p) {
     availabilityStatus: p.availabilityStatus || "",
     availableFrom: p.availableFrom || "",
     airbnbUrl: p.airbnbUrl || p.airbnb_url || "",
+    priceUnit: p.type === "venta" ? "uf" : (p.priceUnit || "mes"),
     showPrice: p.showPrice !== false
   };
 }
@@ -267,7 +278,8 @@ function matchesFilters(p) {
 
 function propCard(p) {
   const isSeason = p.type === "temporada";
-  const unit = p.priceUnit === "noche" ? t("u.night") : t("u.month");
+  const isSale = p.type === "venta";
+  const unit = p.priceUnit === "uf" ? t("u.uf") : (p.priceUnit === "noche" ? t("u.night") : t("u.month"));
   const title = p.title[lang] || p.title.es || "";
   const desc = p.desc[lang] || p.desc.es || "";
   const waMsg = t("wa.prop")
@@ -279,14 +291,14 @@ function propCard(p) {
     : "";
   const availability = availabilityText(p);
   const price = p.showPrice
-    ? `<div class="price"><b>${fmtPrice(p.price)}</b><span>/ ${unit}</span></div>`
+    ? `<div class="price"><b>${fmtPrice(p.price, p.priceUnit)}</b>${p.priceUnit === "uf" ? "" : `<span>/ ${unit}</span>`}</div>`
     : "";
 
   return `
     <article class="card">
       <div class="card__media">
         <img src="${esc(p.image)}" alt="${esc(title)}" loading="lazy" />
-        <span class="card__tag ${isSeason ? "card__tag--temporada" : ""}">${t("tag." + p.type)}</span>
+        <span class="card__tag ${isSeason ? "card__tag--temporada" : ""} ${isSale ? "card__tag--venta" : ""}">${t("tag." + p.type)}</span>
         <span class="card__zone">📍 ${esc(p.zone)}</span>
         ${hasGallery ? `<button class="card__photos" type="button" data-gallery="${esc(p.id)}">${t("card.photos")}</button>` : ""}
       </div>

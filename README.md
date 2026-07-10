@@ -1,6 +1,6 @@
 # R3 Propiedades · r3propiedades.cl
 
-Sitio web de **Rodrigo Rojas Rodríguez** — arriendo de departamentos por **temporada** y **año corrido** en **Concón, Reñaca y Viña del Mar**.
+Sitio web de **Rodrigo Rojas Rodríguez** — arriendo de departamentos por **temporada**, **año corrido** y propiedades en **venta** en **Concón, Reñaca y Viña del Mar**.
 
 Hecho en **HTML / CSS / JS + PHP/MySQL** (sin frameworks), pensado para publicarse en **Bluehosting** con un panel privado para editar propiedades y fotos.
 
@@ -8,7 +8,7 @@ Hecho en **HTML / CSS / JS + PHP/MySQL** (sin frameworks), pensado para publicar
 
 - 🎨 **Identidad visual azul profundo + dorado** inspirada en la costa.
 - 🌐 **Bilingüe** Español / Inglés con selector.
-- 🏠 **Listado de propiedades** filtrable por dormitorios (1 / 2 / 3+) y tipo (temporada / año corrido).
+- 🏠 **Listado de propiedades** filtrable por dormitorios (1 / 2 / 3+) y tipo (temporada / año corrido / venta).
 - 🔐 **Panel privado** en `/admin` para crear, editar, ocultar y eliminar propiedades.
 - 📷 **Subida de fotos optimizada**: máximo 12 por propiedad, lado largo 480 px, WebP si PHP/GD lo soporta.
 - 🖼️ **Carga liviana en el landing**: cada tarjeta carga solo la foto principal; la galería completa se pide al abrirla.
@@ -61,11 +61,11 @@ Opcionalmente se puede completar `translation.mymemory_email` en `api/config.php
 
 | Campo | Qué es |
 |------|--------|
-| `type` | `"temporada"` o `"anio"` (año corrido) |
+| `type` | `"temporada"`, `"anio"` (año corrido) o `"venta"` |
 | `zone` | comuna o sector |
 | `bedrooms` / `bathrooms` | nº de dormitorios / baños |
 | `area` | superficie en m² |
-| `price` / `priceUnit` | valor (sin puntos) y `"noche"` o `"mes"` |
+| `price` / `priceUnit` | valor (sin puntos) y `"noche"`, `"mes"` o `"uf"` para ventas |
 | `showPrice` | muestra u oculta el precio público |
 | `availabilityStatus` / `availableFrom` | disponibilidad actual, desde fecha o no disponible |
 | `photos` | hasta 12 fotos optimizadas automáticamente |

@@ -10,12 +10,13 @@
    - id        : identificador único (texto)
    - type      : "temporada"  (arriendo por temporada/verano)
                  "anio"       (arriendo año corrido)
+                 "venta"      (propiedad en venta)
    - zone      : "Concón" | "Reñaca" | "Viña del Mar"
    - bedrooms  : nº de dormitorios (1, 2, 3...)
    - bathrooms : nº de baños
    - area      : superficie en m²
    - price     : valor numérico (sin puntos)
-   - priceUnit : "noche" | "mes"
+   - priceUnit : "noche" | "mes" | "uf"
    - showPrice : true/false para mostrar u ocultar precio
    - image     : URL de la foto (Unsplash u otra)
    - title     : { es, en }
@@ -153,6 +154,22 @@ window.R3_PROPERTIES = [
     desc: {
       es: "Moderno departamento full amoblado, con gimnasio y piscina temperada en el edificio.",
       en: "Modern fully-furnished apartment, with gym and heated pool in the building."
+    }
+  },
+  {
+    id: "con-3d-venta-costa",
+    type: "venta",
+    zone: "Concón",
+    bedrooms: 3,
+    bathrooms: 2,
+    area: 104,
+    price: 7200,
+    priceUnit: "uf",
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+    title: { es: "Departamento Costa de Montemar", en: "Costa de Montemar Apartment" },
+    desc: {
+      es: "Propiedad en venta con buena distribución, terraza y ubicación cercana a servicios y borde costero.",
+      en: "Property for sale with a practical layout, terrace, and a location close to services and the coastline."
     }
   }
 ];

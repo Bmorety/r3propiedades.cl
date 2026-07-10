@@ -115,6 +115,7 @@ $csrf = csrf_token();
                     <select name="type">
                       <option value="temporada">Temporada</option>
                       <option value="anio">Año corrido</option>
+                      <option value="venta">Venta</option>
                     </select>
                   </label>
                   <label>
@@ -151,6 +152,7 @@ $csrf = csrf_token();
                     <select name="priceUnit">
                       <option value="noche">Noche</option>
                       <option value="mes">Mes</option>
+                      <option value="uf">UF</option>
                     </select>
                   </label>
                   <label>
@@ -170,8 +172,8 @@ $csrf = csrf_token();
                     <input name="availableFrom" type="date" />
                   </label>
                   <label class="span-2">
-                    Link Airbnb opcional
-                    <input name="airbnbUrl" type="url" placeholder="https://www.airbnb..." maxlength="500" />
+                    Link Airbnb / publicación opcional
+                    <input name="airbnbUrl" type="url" placeholder="https://www.airbnb... o link de publicación" maxlength="500" />
                   </label>
                   <label class="span-2">
                     Descripción

@@ -268,6 +268,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--detail); border: 1px solid var(--border);
 }
 .card__tag--temporada { color: var(--on-accent); background: var(--accent); border-color: transparent; }
+.card__tag--venta { color: #fff; background: var(--detail); border-color: transparent; }
 .card__zone { position: absolute; bottom: .8rem; left: .9rem; color: #fff; font-size: .82rem; font-weight: 600; letter-spacing: .03em; text-shadow: 0 1px 8px rgba(0,0,0,.5); display: flex; align-items: center; gap: .35rem; }
 .card__photos {
   position: absolute; right: .9rem; bottom: .75rem;

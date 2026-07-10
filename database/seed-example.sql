@@ -15,4 +15,9 @@ VALUES
  'Studio Plaza Viña', 'Plaza Vina Studio',
  'Acogedor 1 dormitorio en pleno centro, cercano a comercio, metro y universidades.',
  'Cozy 1-bedroom in the heart of downtown, near shops, metro and universities.',
- 0, 1, 30);
+ 0, 1, 30),
+('con-3d-venta-costa', 'venta', 'Concón', 3, 2, 104, 7200, 'uf',
+ 'Departamento Costa de Montemar', 'Costa de Montemar Apartment',
+ 'Propiedad en venta con buena distribución, terraza y ubicación cercana a servicios y borde costero.',
+ 'Property for sale with a practical layout, terrace, and a location close to services and the coastline.',
+ 0, 1, 40);
